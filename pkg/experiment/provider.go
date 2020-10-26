@@ -16,7 +16,7 @@ func refineLogger(logger logger.LogContext, ptype string) logger.LogContext {
 	return logger
 }
 
-func UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSProviderObject) reconcile.Status {
+func (s *State) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSProviderObject) reconcile.Status {
 	logger = refineLogger(logger, obj.TypeCode())
 	logger.Infof("reconcile PROVIDER")
 
@@ -48,7 +48,7 @@ func UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSProviderObject) r
 		logger.Infof("Inserting dnsproviderspec")
 		cmdInsert := generated.NewInsertCommandDNSProviderSpec(p1)
 		// In practice, each transction would likely include more than one command.
-		if err := ddlogProgram.ApplyUpdatesAsTransaction(cmdInsert); err != nil {
+		if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmdInsert); err != nil {
 			logger.Errorf("Error during transaction: %v", err)
 		}
 	} else {

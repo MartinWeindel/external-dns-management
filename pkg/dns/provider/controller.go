@@ -154,6 +154,7 @@ type reconciler struct {
 	reconcile.DefaultReconciler
 	controller controller.Interface
 	state      *state
+	expstate   *experiment.State
 }
 
 var _ reconcile.Interface = &reconciler{}
@@ -197,12 +198,14 @@ func Create(c controller.Interface, factory DNSHandlerFactory) (reconcile.Interf
 			func() interface{} {
 				return NewDNSState(NewDefaultContext(c), ownerresc, classes, *config)
 			}).(*state),
+		expstate: experiment.NewState(NewDefaultContext(c)),
 	}, nil
 }
 
-func (this *reconciler) Setup() {
+func (this *reconciler) Setup() error {
 	this.controller.Infof("*** state Setup ")
 	this.state.Setup()
+	return this.expstate.Setup()
 }
 
 func (this *reconciler) Start() {
@@ -232,7 +235,7 @@ func (this *reconciler) Reconcile(logger logger.LogContext, obj resources.Object
 			return this.state.OwnerDeleted(logger, obj.Key())
 		}
 	case obj.IsA(&api.DNSProvider{}):
-		return experiment.UpdateProvider(logger, dnsutils.DNSProvider(obj))
+		return this.expstate.UpdateProvider(logger, dnsutils.DNSProvider(obj))
 		/*
 			if this.state.IsResponsibleFor(logger, obj) {
 				return this.state.UpdateProvider(logger, dnsutils.DNSProvider(obj))
