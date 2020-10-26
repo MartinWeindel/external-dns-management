@@ -6,6 +6,7 @@ require (
 	github.com/Azure/azure-sdk-for-go v39.0.0+incompatible
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2
 	github.com/Azure/go-autorest/autorest/to v0.3.0 // indirect
+	github.com/MartinWeindel/ddlog-dnscontroller/go v0.0.0-20201019194619-4b7e1626b090
 	github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190603021944-12ad9f921c0b
 	github.com/aws/aws-sdk-go v1.19.41
@@ -22,6 +23,7 @@ require (
 	github.com/onsi/gomega v1.10.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.0.0
+	github.com/vmware/differential-datalog/go v0.0.0-20200901213207-0a92c0bb3c2d
 	go.uber.org/atomic v1.4.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
@@ -37,6 +39,8 @@ require (
 )
 
 replace github.com/infobloxopen/infoblox-go-client => github.com/MartinWeindel/infoblox-go-client v1.1.1-0.20200616154106-b2951ec7a129
+
+replace github.com/MartinWeindel/ddlog-dnscontroller/go => /home/martin/work/ddlog-projects/dnscontroller/go
 
 // fix Vulnerability CVE-2020-14040
 replace golang.org/x/text => golang.org/x/text v0.3.3

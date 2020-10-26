@@ -27,6 +27,7 @@ import (
 	"github.com/gardener/external-dns-management/pkg/apis/dns/crds"
 	"github.com/gardener/external-dns-management/pkg/dns"
 	"github.com/gardener/external-dns-management/pkg/dns/source"
+	"github.com/gardener/external-dns-management/pkg/experiment"
 
 	"github.com/gardener/controller-manager-library/pkg/controllermanager/controller"
 	"github.com/gardener/controller-manager-library/pkg/controllermanager/controller/reconcile"
@@ -231,11 +232,14 @@ func (this *reconciler) Reconcile(logger logger.LogContext, obj resources.Object
 			return this.state.OwnerDeleted(logger, obj.Key())
 		}
 	case obj.IsA(&api.DNSProvider{}):
-		if this.state.IsResponsibleFor(logger, obj) {
-			return this.state.UpdateProvider(logger, dnsutils.DNSProvider(obj))
-		} else {
-			return this.state.RemoveProvider(logger, dnsutils.DNSProvider(obj))
-		}
+		return experiment.UpdateProvider(logger, dnsutils.DNSProvider(obj))
+		/*
+			if this.state.IsResponsibleFor(logger, obj) {
+				return this.state.UpdateProvider(logger, dnsutils.DNSProvider(obj))
+			} else {
+				return this.state.RemoveProvider(logger, dnsutils.DNSProvider(obj))
+			}
+		*/
 	case obj.IsA(&api.DNSEntry{}):
 		if this.state.IsResponsibleFor(logger, obj) {
 			return this.state.UpdateEntry(logger, dnsutils.DNSEntry(obj))

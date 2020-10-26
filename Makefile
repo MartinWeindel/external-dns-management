@@ -2,6 +2,12 @@ EXECUTABLE=dns-controller-manager
 PROJECT=github.com/gardener/external-dns-management
 VERSION=$(shell cat VERSION)
 
+export CGO_LDFLAGS
+export CGO_CPPFLAGS
+CGO_LDFLAGS = -L$(CURDIR)/../ddlog-projects/dnscontroller/dnscontroller_ddlog/target/release -ldnscontroller_ddlog
+CGO_CPPFLAGS = -I$(CURDIR)/../ddlog-projects/dnscontroller/dnscontroller_ddlog 
+LD_LIBRARY_PATH = $(CURDIR)/../ddlog-projects/dnscontroller/dnscontroller_ddlog/target/release
+
 .PHONY: revendor
 revendor:
 	@GO111MODULE=on go mod vendor
@@ -66,3 +72,7 @@ install-requirements:
 alltests:
 	GO111MODULE=on go test -mod=vendor ./pkg/...
 	test/integration/run.sh $(kindargs) -- $(args)
+
+.PHONY: run
+run: build-local
+	@LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) ./dns-controller-manager --identifier martin --controllers=aws-route53

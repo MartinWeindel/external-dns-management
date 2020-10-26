@@ -25,6 +25,9 @@ github.com/Azure/go-autorest/logger
 github.com/Azure/go-autorest/tracing
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
+# github.com/MartinWeindel/ddlog-dnscontroller/go v0.0.0-20201019194619-4b7e1626b090 => /home/martin/work/ddlog-projects/dnscontroller/go
+## explicit
+github.com/MartinWeindel/ddlog-dnscontroller/go/pkg/generated
 # github.com/Masterminds/semver v1.5.0
 github.com/Masterminds/semver
 # github.com/PuerkitoBio/purell v1.1.1
@@ -173,6 +176,8 @@ github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
 # github.com/google/gofuzz v1.1.0
 github.com/google/gofuzz
+# github.com/google/uuid v1.1.1
+github.com/google/uuid
 # github.com/googleapis/gnostic v0.2.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
@@ -307,6 +312,10 @@ github.com/sirupsen/logrus
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
+# github.com/vmware/differential-datalog/go v0.0.0-20200901213207-0a92c0bb3c2d
+## explicit
+github.com/vmware/differential-datalog/go/pkg/ddlog
+github.com/vmware/differential-datalog/go/pkg/uint128
 # go.opencensus.io v0.21.0
 go.opencensus.io
 go.opencensus.io/internal
@@ -831,4 +840,5 @@ sigs.k8s.io/structured-merge-diff/v3/value
 # sigs.k8s.io/yaml v1.2.0
 sigs.k8s.io/yaml
 # github.com/infobloxopen/infoblox-go-client => github.com/MartinWeindel/infoblox-go-client v1.1.1-0.20200616154106-b2951ec7a129
+# github.com/MartinWeindel/ddlog-dnscontroller/go => /home/martin/work/ddlog-projects/dnscontroller/go
 # golang.org/x/text => golang.org/x/text v0.3.3
