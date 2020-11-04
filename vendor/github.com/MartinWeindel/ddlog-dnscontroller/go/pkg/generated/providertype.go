@@ -34,6 +34,10 @@ func ProviderTypeFromRecord(record ddlog.Record) (ProviderType, error) {
 	
 	if rs.Name() == "OpenstackDesignate" {
 		return &OpenstackDesignate{}, nil
+	}
+	
+	if rs.Name() == "CloudflareDNS" {
+		return &CloudflareDNS{}, nil
 	}	
 	return nil, errors.Wrap(fmt.Errorf("unexpected record name %s", rs.Name()), "enum ProviderType")
 }
@@ -127,3 +131,33 @@ func (x *OpenstackDesignate) NewRecord() ddlog.Record {
 func (x *OpenstackDesignate) internalProviderType() {}
 
 func (x *OpenstackDesignate) internalOpenstackDesignate() {}
+
+
+var (
+	// memory will never be freed, which is fine
+	relConstructorCloudflareDNS = ddlog.NewCString("CloudflareDNS")
+)
+
+type ProviderType_CloudflareDNS interface {
+	ProviderType
+	internalCloudflareDNS()
+}
+
+var _ ProviderType = &CloudflareDNS{}
+var _ ProviderType_CloudflareDNS = &CloudflareDNS{}
+
+
+func NewRecordCloudflareDNS(obj *CloudflareDNS) ddlog.Record {
+	return ddlog.NewRecordStructStatic(relConstructorCloudflareDNS)
+}
+
+type CloudflareDNS struct {	
+}
+
+func (x *CloudflareDNS) NewRecord() ddlog.Record {
+	return NewRecordCloudflareDNS(x)
+}
+
+func (x *CloudflareDNS) internalProviderType() {}
+
+func (x *CloudflareDNS) internalCloudflareDNS() {}

@@ -33,6 +33,7 @@ require (
 	k8s.io/apimachinery v0.18.6
 	k8s.io/client-go v0.18.6
 	k8s.io/code-generator v0.18.6
+	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29
 	sigs.k8s.io/controller-tools v0.2.9
 	sigs.k8s.io/kind v0.7.0

@@ -21,7 +21,7 @@ func (s *State) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSProvid
 	logger.Infof("reconcile PROVIDER")
 
 	spec := obj.Spec()
-	if spec.Type == "aws-route53" {
+	if spec.Type == "cloudflare-dns" {
 		domains := &v1alpha1.DNSSelection{}
 		if spec.Domains != nil {
 			domains = spec.Domains
@@ -38,7 +38,7 @@ func (s *State) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSProvid
 					Include: domains.Include,
 					Exclude: domains.Exclude,
 				},
-				ProviderType: &generated.AWSRoute53{},
+				ProviderType: &generated.CloudflareDNS{},
 				Zones: generated.IncludeExclude{
 					Include: zones.Include,
 					Exclude: zones.Exclude,
