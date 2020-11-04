@@ -25,19 +25,19 @@ func ProviderTypeFromRecord(record ddlog.Record) (ProviderType, error) {
 	}
 	
 	if rs.Name() == "AWSRoute53" {
-		return &AWSRoute53{}, nil
+		return &AWSRoute53{T_: "AWSRoute53"}, nil
 	}
 	
 	if rs.Name() == "AzureDNS" {
-		return &AzureDNS{}, nil
+		return &AzureDNS{T_: "AzureDNS"}, nil
 	}
 	
 	if rs.Name() == "OpenstackDesignate" {
-		return &OpenstackDesignate{}, nil
+		return &OpenstackDesignate{T_: "OpenstackDesignate"}, nil
 	}
 	
 	if rs.Name() == "CloudflareDNS" {
-		return &CloudflareDNS{}, nil
+		return &CloudflareDNS{T_: "CloudflareDNS"}, nil
 	}	
 	return nil, errors.Wrap(fmt.Errorf("unexpected record name %s", rs.Name()), "enum ProviderType")
 }
@@ -61,7 +61,8 @@ func NewRecordAWSRoute53(obj *AWSRoute53) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorAWSRoute53)
 }
 
-type AWSRoute53 struct {	
+type AWSRoute53 struct {
+	T_ string	
 }
 
 func (x *AWSRoute53) NewRecord() ddlog.Record {
@@ -91,7 +92,8 @@ func NewRecordAzureDNS(obj *AzureDNS) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorAzureDNS)
 }
 
-type AzureDNS struct {	
+type AzureDNS struct {
+	T_ string	
 }
 
 func (x *AzureDNS) NewRecord() ddlog.Record {
@@ -121,7 +123,8 @@ func NewRecordOpenstackDesignate(obj *OpenstackDesignate) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorOpenstackDesignate)
 }
 
-type OpenstackDesignate struct {	
+type OpenstackDesignate struct {
+	T_ string	
 }
 
 func (x *OpenstackDesignate) NewRecord() ddlog.Record {
@@ -151,7 +154,8 @@ func NewRecordCloudflareDNS(obj *CloudflareDNS) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorCloudflareDNS)
 }
 
-type CloudflareDNS struct {	
+type CloudflareDNS struct {
+	T_ string	
 }
 
 func (x *CloudflareDNS) NewRecord() ddlog.Record {

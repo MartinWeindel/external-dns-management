@@ -25,27 +25,27 @@ func EntryStatusFromRecord(record ddlog.Record) (EntryStatus, error) {
 	}
 	
 	if rs.Name() == "Unchanged" {
-		return &Unchanged{}, nil
+		return &Unchanged{T_: "Unchanged"}, nil
 	}
 	
 	if rs.Name() == "Inserting" {
-		return &Inserting{}, nil
+		return &Inserting{T_: "Inserting"}, nil
 	}
 	
 	if rs.Name() == "Updating" {
-		return &Updating{}, nil
+		return &Updating{T_: "Updating"}, nil
 	}
 	
 	if rs.Name() == "ForeignOwner" {
-		return &ForeignOwner{}, nil
+		return &ForeignOwner{T_: "ForeignOwner"}, nil
 	}
 	
 	if rs.Name() == "OwnerConflict" {
-		return &OwnerConflict{}, nil
+		return &OwnerConflict{T_: "OwnerConflict"}, nil
 	}
 	
 	if rs.Name() == "NoProvider" {
-		return &NoProvider{}, nil
+		return &NoProvider{T_: "NoProvider"}, nil
 	}	
 	return nil, errors.Wrap(fmt.Errorf("unexpected record name %s", rs.Name()), "enum EntryStatus")
 }
@@ -69,7 +69,8 @@ func NewRecordUnchanged(obj *Unchanged) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorUnchanged)
 }
 
-type Unchanged struct {	
+type Unchanged struct {
+	T_ string	
 }
 
 func (x *Unchanged) NewRecord() ddlog.Record {
@@ -99,7 +100,8 @@ func NewRecordInserting(obj *Inserting) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorInserting)
 }
 
-type Inserting struct {	
+type Inserting struct {
+	T_ string	
 }
 
 func (x *Inserting) NewRecord() ddlog.Record {
@@ -129,7 +131,8 @@ func NewRecordUpdating(obj *Updating) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorUpdating)
 }
 
-type Updating struct {	
+type Updating struct {
+	T_ string	
 }
 
 func (x *Updating) NewRecord() ddlog.Record {
@@ -163,6 +166,7 @@ func NewRecordForeignOwner(obj *ForeignOwner) ddlog.Record {
 }
 
 type ForeignOwner struct {
+	T_ string
     Owner string	
 }
 
@@ -197,6 +201,7 @@ func NewRecordOwnerConflict(obj *OwnerConflict) ddlog.Record {
 }
 
 type OwnerConflict struct {
+	T_ string
     Owner string	
 }
 
@@ -227,7 +232,8 @@ func NewRecordNoProvider(obj *NoProvider) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorNoProvider)
 }
 
-type NoProvider struct {	
+type NoProvider struct {
+	T_ string	
 }
 
 func (x *NoProvider) NewRecord() ddlog.Record {

@@ -25,19 +25,19 @@ func StatusFromRecord(record ddlog.Record) (Status, error) {
 	}
 	
 	if rs.Name() == "Ready" {
-		return &Ready{}, nil
+		return &Ready{T_: "Ready"}, nil
 	}
 	
 	if rs.Name() == "Stale" {
-		return &Stale{}, nil
+		return &Stale{T_: "Stale"}, nil
 	}
 	
 	if rs.Name() == "Pending" {
-		return &Pending{}, nil
+		return &Pending{T_: "Pending"}, nil
 	}
 	
 	if rs.Name() == "Error" {
-		return &Error{}, nil
+		return &Error{T_: "Error"}, nil
 	}	
 	return nil, errors.Wrap(fmt.Errorf("unexpected record name %s", rs.Name()), "enum Status")
 }
@@ -61,7 +61,8 @@ func NewRecordReady(obj *Ready) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorReady)
 }
 
-type Ready struct {	
+type Ready struct {
+	T_ string	
 }
 
 func (x *Ready) NewRecord() ddlog.Record {
@@ -91,7 +92,8 @@ func NewRecordStale(obj *Stale) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorStale)
 }
 
-type Stale struct {	
+type Stale struct {
+	T_ string	
 }
 
 func (x *Stale) NewRecord() ddlog.Record {
@@ -121,7 +123,8 @@ func NewRecordPending(obj *Pending) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorPending)
 }
 
-type Pending struct {	
+type Pending struct {
+	T_ string	
 }
 
 func (x *Pending) NewRecord() ddlog.Record {
@@ -151,7 +154,8 @@ func NewRecordError(obj *Error) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorError)
 }
 
-type Error struct {	
+type Error struct {
+	T_ string	
 }
 
 func (x *Error) NewRecord() ddlog.Record {

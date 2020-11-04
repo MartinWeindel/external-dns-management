@@ -25,19 +25,19 @@ func RecordTypeFromRecord(record ddlog.Record) (RecordType, error) {
 	}
 	
 	if rs.Name() == "A" {
-		return &A{}, nil
+		return &A{T_: "A"}, nil
 	}
 	
 	if rs.Name() == "CNAME" {
-		return &CNAME{}, nil
+		return &CNAME{T_: "CNAME"}, nil
 	}
 	
 	if rs.Name() == "TXT" {
-		return &TXT{}, nil
+		return &TXT{T_: "TXT"}, nil
 	}
 	
 	if rs.Name() == "NS" {
-		return &NS{}, nil
+		return &NS{T_: "NS"}, nil
 	}	
 	return nil, errors.Wrap(fmt.Errorf("unexpected record name %s", rs.Name()), "enum RecordType")
 }
@@ -61,7 +61,8 @@ func NewRecordA(obj *A) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorA)
 }
 
-type A struct {	
+type A struct {
+	T_ string	
 }
 
 func (x *A) NewRecord() ddlog.Record {
@@ -91,7 +92,8 @@ func NewRecordCNAME(obj *CNAME) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorCNAME)
 }
 
-type CNAME struct {	
+type CNAME struct {
+	T_ string	
 }
 
 func (x *CNAME) NewRecord() ddlog.Record {
@@ -121,7 +123,8 @@ func NewRecordTXT(obj *TXT) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorTXT)
 }
 
-type TXT struct {	
+type TXT struct {
+	T_ string	
 }
 
 func (x *TXT) NewRecord() ddlog.Record {
@@ -151,7 +154,8 @@ func NewRecordNS(obj *NS) ddlog.Record {
 	return ddlog.NewRecordStructStatic(relConstructorNS)
 }
 
-type NS struct {	
+type NS struct {
+	T_ string	
 }
 
 func (x *NS) NewRecord() ddlog.Record {

@@ -60,7 +60,7 @@ func (p *OutRecordPrinter) Handle(tableID ddlog.TableID, r ddlog.Record, weight 
 		println("unmarshal failed", tableID, err, r.Dump(), weight)
 	}
 	s, _ := json.MarshalIndent(obj, "", "  ")
-	fmt.Printf("%s[%s] %d: %s\n", meta.TableName, meta.RecordName, weight, s)
+	fmt.Printf("%s[%s] %d: %s\n%s\n", meta.TableName, meta.RecordName, weight, s, r.Dump())
 }
 
 func NewState(context Context) *State {
