@@ -31,3 +31,17 @@ func NewInsertCommandRecordSet(obj *RecordSet) ddlog.Command {
 	rec := NewRecordRecordSet(obj)
 	return ddlog.NewInsertCommand(relTableIDRecordSet, rec)
 }
+
+func NewInsertOrUpdateCommandRecordSet(obj *RecordSet) ddlog.Command {
+	rec := NewRecordRecordSet(obj)
+	return ddlog.NewInsertOrUpdateCommand(relTableIDRecordSet, rec)
+}
+
+func NewDeleteValCommandRecordSet(obj *RecordSet) ddlog.Command {
+	rec := NewRecordRecordSet(obj)
+	return ddlog.NewDeleteValCommand(relTableIDRecordSet, rec)
+}
+
+func GetRelTableIDRecordSet() ddlog.TableID {
+	return relTableIDRecordSet
+}

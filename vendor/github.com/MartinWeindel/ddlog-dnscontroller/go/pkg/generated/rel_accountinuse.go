@@ -31,3 +31,17 @@ func NewInsertCommandAccountInUse(obj *AccountInUse) ddlog.Command {
 	rec := NewRecordAccountInUse(obj)
 	return ddlog.NewInsertCommand(relTableIDAccountInUse, rec)
 }
+
+func NewInsertOrUpdateCommandAccountInUse(obj *AccountInUse) ddlog.Command {
+	rec := NewRecordAccountInUse(obj)
+	return ddlog.NewInsertOrUpdateCommand(relTableIDAccountInUse, rec)
+}
+
+func NewDeleteValCommandAccountInUse(obj *AccountInUse) ddlog.Command {
+	rec := NewRecordAccountInUse(obj)
+	return ddlog.NewDeleteValCommand(relTableIDAccountInUse, rec)
+}
+
+func GetRelTableIDAccountInUse() ddlog.TableID {
+	return relTableIDAccountInUse
+}

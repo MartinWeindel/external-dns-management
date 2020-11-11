@@ -18,8 +18,9 @@ package provider
 
 import (
 	"context"
-	corev1 "k8s.io/api/core/v1"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/gardener/controller-manager-library/pkg/controllermanager/controller"
 	"github.com/gardener/controller-manager-library/pkg/logger"
@@ -32,6 +33,8 @@ type Context interface {
 	logger.LogContext
 
 	GetContext() context.Context
+
+	GetClusterId(name string) string
 
 	IsReady() bool
 	GetByExample(runtime.Object) (resources.Interface, error)
@@ -66,6 +69,10 @@ func NewDefaultContext(controller controller.Interface) Context {
 
 func (this *DefaultContext) GetContext() context.Context {
 	return this.controller.GetContext()
+}
+
+func (this *DefaultContext) GetClusterId(name string) string {
+	return this.controller.GetCluster(name).GetId()
 }
 
 func (this *DefaultContext) IsReady() bool {

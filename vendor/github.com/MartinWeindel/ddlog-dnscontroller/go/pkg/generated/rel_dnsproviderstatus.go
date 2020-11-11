@@ -31,3 +31,17 @@ func NewInsertCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
 	rec := NewRecordDNSProviderStatus(obj)
 	return ddlog.NewInsertCommand(relTableIDDNSProviderStatus, rec)
 }
+
+func NewInsertOrUpdateCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
+	rec := NewRecordDNSProviderStatus(obj)
+	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSProviderStatus, rec)
+}
+
+func NewDeleteValCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
+	rec := NewRecordDNSProviderStatus(obj)
+	return ddlog.NewDeleteValCommand(relTableIDDNSProviderStatus, rec)
+}
+
+func GetRelTableIDDNSProviderStatus() ddlog.TableID {
+	return relTableIDDNSProviderStatus
+}

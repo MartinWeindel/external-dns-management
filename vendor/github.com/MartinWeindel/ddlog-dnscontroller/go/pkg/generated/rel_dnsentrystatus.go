@@ -31,3 +31,17 @@ func NewInsertCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
 	rec := NewRecordDNSEntryStatus(obj)
 	return ddlog.NewInsertCommand(relTableIDDNSEntryStatus, rec)
 }
+
+func NewInsertOrUpdateCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
+	rec := NewRecordDNSEntryStatus(obj)
+	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSEntryStatus, rec)
+}
+
+func NewDeleteValCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
+	rec := NewRecordDNSEntryStatus(obj)
+	return ddlog.NewDeleteValCommand(relTableIDDNSEntryStatus, rec)
+}
+
+func GetRelTableIDDNSEntryStatus() ddlog.TableID {
+	return relTableIDDNSEntryStatus
+}

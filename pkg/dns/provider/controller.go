@@ -198,7 +198,7 @@ func Create(c controller.Interface, factory DNSHandlerFactory) (reconcile.Interf
 			func() interface{} {
 				return NewDNSState(NewDefaultContext(c), ownerresc, classes, *config)
 			}).(*state),
-		expstate: experiment.NewState(NewDefaultContext(c)),
+		expstate: experiment.NewState(NewDefaultContext(c), classes),
 	}, nil
 }
 
@@ -260,7 +260,7 @@ func (this *reconciler) Delete(logger logger.LogContext, obj resources.Object) r
 		logger.Debugf("should delete %s", obj.Description())
 		switch {
 		case obj.IsA(&api.DNSProvider{}):
-			return this.state.RemoveProvider(logger, dnsutils.DNSProvider(obj))
+			return this.expstate.RemoveProvider(logger, dnsutils.DNSProvider(obj))
 		case obj.IsA(&api.DNSEntry{}):
 			obj.UpdateFromCache()
 			return this.state.DeleteEntry(logger, dnsutils.DNSEntry(obj))
@@ -277,7 +277,7 @@ func (this *reconciler) Deleted(logger logger.LogContext, key resources.ClusterO
 	case ownerGroupKind:
 		return this.state.OwnerDeleted(logger, key.ObjectKey())
 	case providerGroupKind:
-		return this.state.ProviderDeleted(logger, key.ObjectKey())
+		return this.expstate.ProviderDeleted(logger, key.ObjectKey())
 	case entryGroupKind:
 		return this.state.EntryDeleted(logger, key)
 	}

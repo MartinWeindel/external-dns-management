@@ -31,3 +31,21 @@ func NewInsertCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
 	rec := NewRecordDNSProviderSpec(obj)
 	return ddlog.NewInsertCommand(relTableIDDNSProviderSpec, rec)
 }
+
+func NewInsertOrUpdateCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
+	rec := NewRecordDNSProviderSpec(obj)
+	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSProviderSpec, rec)
+}
+
+func NewDeleteValCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
+	rec := NewRecordDNSProviderSpec(obj)
+	return ddlog.NewDeleteValCommand(relTableIDDNSProviderSpec, rec)
+}
+func NewDeleteKeyCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
+	rec := NewRecordDNSProviderSpec(obj)
+	return ddlog.NewDeleteKeyCommand(relTableIDDNSProviderSpec, rec)
+}
+
+func GetRelTableIDDNSProviderSpec() ddlog.TableID {
+	return relTableIDDNSProviderSpec
+}

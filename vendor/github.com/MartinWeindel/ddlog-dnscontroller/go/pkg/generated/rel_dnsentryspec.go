@@ -31,3 +31,21 @@ func NewInsertCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
 	rec := NewRecordDNSEntrySpec(obj)
 	return ddlog.NewInsertCommand(relTableIDDNSEntrySpec, rec)
 }
+
+func NewInsertOrUpdateCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
+	rec := NewRecordDNSEntrySpec(obj)
+	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSEntrySpec, rec)
+}
+
+func NewDeleteValCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
+	rec := NewRecordDNSEntrySpec(obj)
+	return ddlog.NewDeleteValCommand(relTableIDDNSEntrySpec, rec)
+}
+func NewDeleteKeyCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
+	rec := NewRecordDNSEntrySpec(obj)
+	return ddlog.NewDeleteKeyCommand(relTableIDDNSEntrySpec, rec)
+}
+
+func GetRelTableIDDNSEntrySpec() ddlog.TableID {
+	return relTableIDDNSEntrySpec
+}

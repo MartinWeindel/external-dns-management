@@ -178,12 +178,6 @@ func (this *state) Setup() {
 		processors = 5
 	}
 	this.context.Infof("using %d parallel workers for initialization", processors)
-	this.setupFor(&api.DNSProvider{}, "providers", func(e resources.Object) {
-		p := dnsutils.DNSProvider(e)
-		if this.GetHandlerFactory().IsResponsibleFor(p) {
-			this.UpdateProvider(this.context.NewContext("provider", p.ObjectName().String()), p)
-		}
-	}, processors)
 	this.setupFor(&api.DNSOwner{}, "owners", func(e resources.Object) {
 		p := dnsutils.DNSOwner(e)
 		this.UpdateOwner(this.context.NewContext("owner", p.ObjectName().String()), p, true)

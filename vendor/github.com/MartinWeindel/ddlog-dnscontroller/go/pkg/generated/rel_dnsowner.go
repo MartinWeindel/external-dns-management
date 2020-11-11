@@ -31,3 +31,17 @@ func NewInsertCommandDNSOwner(obj *DNSOwner) ddlog.Command {
 	rec := NewRecordDNSOwner(obj)
 	return ddlog.NewInsertCommand(relTableIDDNSOwner, rec)
 }
+
+func NewInsertOrUpdateCommandDNSOwner(obj *DNSOwner) ddlog.Command {
+	rec := NewRecordDNSOwner(obj)
+	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSOwner, rec)
+}
+
+func NewDeleteValCommandDNSOwner(obj *DNSOwner) ddlog.Command {
+	rec := NewRecordDNSOwner(obj)
+	return ddlog.NewDeleteValCommand(relTableIDDNSOwner, rec)
+}
+
+func GetRelTableIDDNSOwner() ddlog.TableID {
+	return relTableIDDNSOwner
+}

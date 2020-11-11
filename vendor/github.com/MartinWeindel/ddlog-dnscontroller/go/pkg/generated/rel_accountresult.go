@@ -31,3 +31,21 @@ func NewInsertCommandAccountResult(obj *AccountResult) ddlog.Command {
 	rec := NewRecordAccountResult(obj)
 	return ddlog.NewInsertCommand(relTableIDAccountResult, rec)
 }
+
+func NewInsertOrUpdateCommandAccountResult(obj *AccountResult) ddlog.Command {
+	rec := NewRecordAccountResult(obj)
+	return ddlog.NewInsertOrUpdateCommand(relTableIDAccountResult, rec)
+}
+
+func NewDeleteValCommandAccountResult(obj *AccountResult) ddlog.Command {
+	rec := NewRecordAccountResult(obj)
+	return ddlog.NewDeleteValCommand(relTableIDAccountResult, rec)
+}
+func NewDeleteKeyCommandAccountResult(obj *AccountResult) ddlog.Command {
+	rec := NewRecordAccountResult(obj)
+	return ddlog.NewDeleteKeyCommand(relTableIDAccountResult, rec)
+}
+
+func GetRelTableIDAccountResult() ddlog.TableID {
+	return relTableIDAccountResult
+}
