@@ -27,7 +27,6 @@ import (
 	"github.com/gardener/external-dns-management/pkg/apis/dns/crds"
 	"github.com/gardener/external-dns-management/pkg/dns"
 	"github.com/gardener/external-dns-management/pkg/dns/source"
-	"github.com/gardener/external-dns-management/pkg/experiment"
 
 	"github.com/gardener/controller-manager-library/pkg/controllermanager/controller"
 	"github.com/gardener/controller-manager-library/pkg/controllermanager/controller/reconcile"
@@ -154,7 +153,7 @@ type reconciler struct {
 	reconcile.DefaultReconciler
 	controller controller.Interface
 	state      *state
-	expstate   *experiment.State
+	expstate   *expState
 }
 
 var _ reconcile.Interface = &reconciler{}
@@ -198,7 +197,7 @@ func Create(c controller.Interface, factory DNSHandlerFactory) (reconcile.Interf
 			func() interface{} {
 				return NewDNSState(NewDefaultContext(c), ownerresc, classes, *config)
 			}).(*state),
-		expstate: experiment.NewState(NewDefaultContext(c), classes),
+		expstate: newExpState(NewDefaultContext(c), classes, *config),
 	}, nil
 }
 

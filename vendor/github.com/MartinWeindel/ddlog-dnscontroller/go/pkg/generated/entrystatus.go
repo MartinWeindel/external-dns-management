@@ -11,6 +11,7 @@ import (
 
 type EntryStatus interface {
 	internalEntryStatus()
+	Name() string
 	NewRecord() ddlog.Record
 }
 
@@ -73,6 +74,10 @@ type Unchanged struct {
 	T_ string	
 }
 
+func (x *Unchanged) Name() string {
+	return "Unchanged"
+}
+
 func (x *Unchanged) NewRecord() ddlog.Record {
 	return NewRecordUnchanged(x)
 }
@@ -104,6 +109,10 @@ type Inserting struct {
 	T_ string	
 }
 
+func (x *Inserting) Name() string {
+	return "Inserting"
+}
+
 func (x *Inserting) NewRecord() ddlog.Record {
 	return NewRecordInserting(x)
 }
@@ -133,6 +142,10 @@ func NewRecordUpdating(obj *Updating) ddlog.Record {
 
 type Updating struct {
 	T_ string	
+}
+
+func (x *Updating) Name() string {
+	return "Updating"
 }
 
 func (x *Updating) NewRecord() ddlog.Record {
@@ -170,6 +183,10 @@ type ForeignOwner struct {
     Owner string	
 }
 
+func (x *ForeignOwner) Name() string {
+	return "ForeignOwner"
+}
+
 func (x *ForeignOwner) NewRecord() ddlog.Record {
 	return NewRecordForeignOwner(x)
 }
@@ -205,6 +222,10 @@ type OwnerConflict struct {
     Owner string	
 }
 
+func (x *OwnerConflict) Name() string {
+	return "OwnerConflict"
+}
+
 func (x *OwnerConflict) NewRecord() ddlog.Record {
 	return NewRecordOwnerConflict(x)
 }
@@ -234,6 +255,10 @@ func NewRecordNoProvider(obj *NoProvider) ddlog.Record {
 
 type NoProvider struct {
 	T_ string	
+}
+
+func (x *NoProvider) Name() string {
+	return "NoProvider"
 }
 
 func (x *NoProvider) NewRecord() ddlog.Record {

@@ -1,14 +1,11 @@
-package experiment
+package provider
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"sort"
 	"sync"
-
-	corev1 "k8s.io/api/core/v1"
 
 	"github.com/MartinWeindel/ddlog-dnscontroller/go/pkg/generated"
 	"github.com/gardener/controller-manager-library/pkg/controllermanager/controller"
@@ -23,55 +20,29 @@ import (
 	"k8s.io/klog"
 )
 
-type Context interface {
-	logger.LogContext
-
-	GetContext() context.Context
-
-	GetClusterId(name string) string
-
-	IsReady() bool
-	GetByExample(runtime.Object) (resources.Interface, error)
-
-	GetStringOption(name string) (string, error)
-	GetIntOption(name string) (int, error)
-
-	Synchronize(log logger.LogContext, name string, initiator resources.Object) (bool, error)
-
-	Enqueue(obj resources.Object) error
-	EnqueueCommand(cmd string) error
-	EnqueueKey(key resources.ClusterObjectKey) error
-
-	SetFinalizer(resources.Object) error
-	RemoveFinalizer(resources.Object) error
-	HasFinalizer(resources.Object) bool
-
-	GetSecretPropertiesByRef(src resources.ResourcesSource, ref *corev1.SecretReference) (utils.Properties, *resources.SecretObject, error)
-}
-
-type State struct {
+type expState struct {
 	context          Context
+	config           Config
 	classes          *controller.Classes
 	numDDlogWorkers  uint
 	ddlogProgram     *ddlog.Program
 	outRecordHandler ddlog.OutRecordHandler
 
 	credentials map[string]utils.Properties
+
+	accountCache *AccountCache
+
+	lock                sync.Mutex
+	providerUpdateQueue map[resources.ObjectName][]*generated.DNSProviderStatus
 }
 
-type OutRecordPrinter struct {
+type expOutRecordPrinter struct {
 	changesMutex sync.Mutex
 	clusterId    string
-	context      Context
+	state        *expState
 }
 
-const PROVIDER_CLUSTER = "provider"
-
-var ownerGroupKind = resources.NewGroupKind(api.GroupName, api.DNSOwnerKind)
-var providerGroupKind = resources.NewGroupKind(api.GroupName, api.DNSProviderKind)
-var entryGroupKind = resources.NewGroupKind(api.GroupName, api.DNSEntryKind)
-
-func (p *OutRecordPrinter) Handle(tableID ddlog.TableID, r ddlog.Record, weight int64) {
+func (p *expOutRecordPrinter) Handle(tableID ddlog.TableID, r ddlog.Record, weight int64) {
 	p.changesMutex.Lock()
 	defer p.changesMutex.Unlock()
 
@@ -85,28 +56,25 @@ func (p *OutRecordPrinter) Handle(tableID ddlog.TableID, r ddlog.Record, weight 
 	}
 	if tableID == generated.GetRelTableIDDNSProviderStatus() {
 		o := obj.(*generated.DNSProviderStatus)
-		key := resources.NewClusterKey(p.context.GetClusterId(PROVIDER_CLUSTER), providerGroupKind, o.Key.Arg0, o.Key.Arg1)
-		err := p.context.EnqueueKey(key)
-		if err != nil {
-			fmt.Printf("enqueue key %s failed: %s\n", key, err)
-		} else {
-			fmt.Printf("enqueued key %s\n", key)
-		}
+		p.state.AddProviderStatusToQueueAndEnqueue(o)
 	}
 	s, _ := json.MarshalIndent(obj, "", "  ")
 	fmt.Printf("%s[%s] %d: %s\n%s\n", meta.TableName, meta.RecordName, weight, s, r.Dump())
 }
 
-func NewState(context Context, classes *controller.Classes) *State {
-	return &State{
-		context:         context,
-		numDDlogWorkers: 1,
-		classes:         classes,
-		credentials:     map[string]utils.Properties{},
+func newExpState(context Context, classes *controller.Classes, config Config) *expState {
+	return &expState{
+		context:             context,
+		config:              config,
+		numDDlogWorkers:     1,
+		classes:             classes,
+		credentials:         map[string]utils.Properties{},
+		providerUpdateQueue: map[resources.ObjectName][]*generated.DNSProviderStatus{},
+		accountCache:        NewAccountCache(config.CacheTTL, config.CacheDir, config.Options),
 	}
 }
 
-func (s *State) Setup() error {
+func (s *expState) Setup() error {
 	// Ensures that DDlog will use our own logger (klog) to print error messages.
 	log := func(msg string) {
 		klog.Errorf(msg)
@@ -114,7 +82,7 @@ func (s *State) Setup() error {
 
 	ddlog.SetErrMsgPrinter(log)
 
-	s.outRecordHandler = &OutRecordPrinter{context: s.context}
+	s.outRecordHandler = &expOutRecordPrinter{state: s}
 
 	klog.Infof("Running new DDlog program")
 	var err error
@@ -131,7 +99,7 @@ func (s *State) Setup() error {
 	return nil
 }
 
-func (s *State) setupFor(obj runtime.Object, msg string, exec func(resources.Object), processors int) {
+func (s *expState) setupFor(obj runtime.Object, msg string, exec func(resources.Object), processors int) {
 	s.context.Infof("### setup %s", msg)
 	res, _ := s.context.GetByExample(obj)
 	list, _ := res.ListCached(labels.Everything())
@@ -142,11 +110,23 @@ func (s *State) setupFor(obj runtime.Object, msg string, exec func(resources.Obj
 	}, processors)
 }
 
-func (s *State) IsResponsibleFor(logger logger.LogContext, obj resources.Object) bool {
+func (s *expState) IsResponsibleFor(logger logger.LogContext, obj resources.Object) bool {
 	return s.classes.IsResponsibleFor(logger, obj)
 }
 
-func (s *State) hashAndCache(secretProps utils.Properties) string {
+func (s *expState) GetDNSAccount(logger logger.LogContext, provider *dnsutils.DNSProviderObject, props utils.Properties) (*DNSAccount, error) {
+	return s.accountCache.Get(logger, provider, props, s)
+}
+
+func (s *expState) GetContext() Context {
+	return s.context
+}
+
+func (s *expState) GetConfig() Config {
+	return s.config
+}
+
+func (s *expState) hashAndCache(secretProps utils.Properties) string {
 	keys := []string{}
 	for k := range secretProps {
 		keys = append(keys, k)
@@ -162,4 +142,36 @@ func (s *State) hashAndCache(secretProps utils.Properties) string {
 
 	s.credentials[hash] = secretProps
 	return hash
+}
+
+func (s *expState) AddProviderStatusToQueueAndEnqueue(obj *generated.DNSProviderStatus) {
+	s.addProviderStatusToQueue(obj)
+
+	key := resources.NewClusterKey(s.context.GetClusterId(PROVIDER_CLUSTER), providerGroupKind, obj.Key.Arg0, obj.Key.Arg1)
+	err := s.context.EnqueueKey(key)
+	if err != nil {
+		s.context.Errorf("enqueue key %s failed: %s\n", key, err)
+	} else {
+		s.context.Infof("enqueued key %s\n", key)
+	}
+}
+
+func (s *expState) addProviderStatusToQueue(obj *generated.DNSProviderStatus) {
+	name := resources.NewObjectName(obj.Key.Arg0, obj.Key.Arg1)
+
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	list := s.providerUpdateQueue[name]
+	s.providerUpdateQueue[name] = append(list, obj)
+}
+
+func (s *expState) nextProviderStatusesFromQueue(name resources.ObjectName) []*generated.DNSProviderStatus {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	list, ok := s.providerUpdateQueue[name]
+	if !ok || len(list) == 0 {
+		return nil
+	}
+	delete(s.providerUpdateQueue, name)
+	return list
 }

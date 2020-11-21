@@ -11,6 +11,7 @@ import (
 
 type ProviderType interface {
 	internalProviderType()
+	Name() string
 	NewRecord() ddlog.Record
 }
 
@@ -65,6 +66,10 @@ type AWSRoute53 struct {
 	T_ string	
 }
 
+func (x *AWSRoute53) Name() string {
+	return "AWSRoute53"
+}
+
 func (x *AWSRoute53) NewRecord() ddlog.Record {
 	return NewRecordAWSRoute53(x)
 }
@@ -94,6 +99,10 @@ func NewRecordAzureDNS(obj *AzureDNS) ddlog.Record {
 
 type AzureDNS struct {
 	T_ string	
+}
+
+func (x *AzureDNS) Name() string {
+	return "AzureDNS"
 }
 
 func (x *AzureDNS) NewRecord() ddlog.Record {
@@ -127,6 +136,10 @@ type OpenstackDesignate struct {
 	T_ string	
 }
 
+func (x *OpenstackDesignate) Name() string {
+	return "OpenstackDesignate"
+}
+
 func (x *OpenstackDesignate) NewRecord() ddlog.Record {
 	return NewRecordOpenstackDesignate(x)
 }
@@ -156,6 +169,10 @@ func NewRecordCloudflareDNS(obj *CloudflareDNS) ddlog.Record {
 
 type CloudflareDNS struct {
 	T_ string	
+}
+
+func (x *CloudflareDNS) Name() string {
+	return "CloudflareDNS"
 }
 
 func (x *CloudflareDNS) NewRecord() ddlog.Record {

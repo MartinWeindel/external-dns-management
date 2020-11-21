@@ -128,6 +128,11 @@ type state struct {
 	initialized bool
 }
 
+type stateCommon interface {
+	GetContext() Context
+	GetConfig() Config
+}
+
 func NewDNSState(ctx Context, ownerresc resources.Interface, classes *controller.Classes, config Config) *state {
 	ctx.Infof("responsible for classes:     %s (%s)", classes, classes.Main())
 	ctx.Infof("availabled providers types   %s", config.Factory.TypeCodes())

@@ -11,6 +11,7 @@ import (
 
 type RecordType interface {
 	internalRecordType()
+	Name() string
 	NewRecord() ddlog.Record
 }
 
@@ -65,6 +66,10 @@ type A struct {
 	T_ string	
 }
 
+func (x *A) Name() string {
+	return "A"
+}
+
 func (x *A) NewRecord() ddlog.Record {
 	return NewRecordA(x)
 }
@@ -94,6 +99,10 @@ func NewRecordCNAME(obj *CNAME) ddlog.Record {
 
 type CNAME struct {
 	T_ string	
+}
+
+func (x *CNAME) Name() string {
+	return "CNAME"
 }
 
 func (x *CNAME) NewRecord() ddlog.Record {
@@ -127,6 +136,10 @@ type TXT struct {
 	T_ string	
 }
 
+func (x *TXT) Name() string {
+	return "TXT"
+}
+
 func (x *TXT) NewRecord() ddlog.Record {
 	return NewRecordTXT(x)
 }
@@ -156,6 +169,10 @@ func NewRecordNS(obj *NS) ddlog.Record {
 
 type NS struct {
 	T_ string	
+}
+
+func (x *NS) Name() string {
+	return "NS"
 }
 
 func (x *NS) NewRecord() ddlog.Record {

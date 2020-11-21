@@ -11,6 +11,7 @@ import (
 
 type Status interface {
 	internalStatus()
+	Name() string
 	NewRecord() ddlog.Record
 }
 
@@ -65,6 +66,10 @@ type Ready struct {
 	T_ string	
 }
 
+func (x *Ready) Name() string {
+	return "Ready"
+}
+
 func (x *Ready) NewRecord() ddlog.Record {
 	return NewRecordReady(x)
 }
@@ -94,6 +99,10 @@ func NewRecordStale(obj *Stale) ddlog.Record {
 
 type Stale struct {
 	T_ string	
+}
+
+func (x *Stale) Name() string {
+	return "Stale"
 }
 
 func (x *Stale) NewRecord() ddlog.Record {
@@ -127,6 +136,10 @@ type Pending struct {
 	T_ string	
 }
 
+func (x *Pending) Name() string {
+	return "Pending"
+}
+
 func (x *Pending) NewRecord() ddlog.Record {
 	return NewRecordPending(x)
 }
@@ -156,6 +169,10 @@ func NewRecordError(obj *Error) ddlog.Record {
 
 type Error struct {
 	T_ string	
+}
+
+func (x *Error) Name() string {
+	return "Error"
 }
 
 func (x *Error) NewRecord() ddlog.Record {

@@ -149,7 +149,7 @@ func NewAccountCache(ttl time.Duration, dir string, opts *FactoryOptions) *Accou
 	}
 }
 
-func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSProviderObject, props utils.Properties, state *state) (*DNSAccount, error) {
+func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSProviderObject, props utils.Properties, state stateCommon) (*DNSAccount, error) {
 	name := provider.ObjectName()
 	hash := this.Hash(props, provider.Spec().Type, provider.Spec().ProviderConfig)
 	this.lock.Lock()
@@ -171,7 +171,7 @@ func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSPr
 			persistDir:            persistDir,
 			zonesTTL:              this.ttl,
 			stateTTL:              *syncPeriod,
-			disableZoneStateCache: !state.config.ZoneStateCaching,
+			disableZoneStateCache: !state.GetConfig().ZoneStateCaching,
 		}
 
 		var err error
@@ -196,7 +196,7 @@ func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSPr
 			Metrics:     a,
 			RateLimiter: rateLimiter,
 		}
-		a.handler, err = state.GetHandlerFactory().Create(provider.TypeCode(), &cfg)
+		a.handler, err = state.GetConfig().Factory.Create(provider.TypeCode(), &cfg)
 		if err != nil {
 			return nil, err
 		}
