@@ -16,8 +16,8 @@ var (
 func init() {
 	relTableIDDNSProviderSpec = ddlog.GetTableID("DNSProviderSpec")
 	meta := &TableMetaData{
-		TableID: relTableIDDNSProviderSpec,
-		TableName: "DNSProviderSpec", 
+		TableID:    relTableIDDNSProviderSpec,
+		TableName:  "DNSProviderSpec",
 		RecordName: "DNSProviderSpec",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
 			obj, err := DNSProviderSpecFromRecord(record)
@@ -42,7 +42,7 @@ func NewDeleteValCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
 	return ddlog.NewDeleteValCommand(relTableIDDNSProviderSpec, rec)
 }
 func NewDeleteKeyCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
-	rec := NewRecordDNSProviderSpec(obj)
+	rec := NewRecordKey_DNSProviderSpec(obj)
 	return ddlog.NewDeleteKeyCommand(relTableIDDNSProviderSpec, rec)
 }
 

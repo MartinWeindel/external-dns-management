@@ -16,6 +16,9 @@ type RecordType interface {
 }
 
 func NewRecordRecordType(obj RecordType) ddlog.Record {
+	if obj == nil {
+		return ddlog.NewRecordNull() 
+	}
 	return obj.NewRecord()
 }
 
