@@ -16,9 +16,6 @@ type EntryStatus interface {
 }
 
 func NewRecordEntryStatus(obj EntryStatus) ddlog.Record {
-	if obj == nil {
-		return ddlog.NewRecordNull() 
-	}
 	return obj.NewRecord()
 }
 

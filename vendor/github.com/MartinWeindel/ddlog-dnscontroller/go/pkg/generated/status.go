@@ -16,9 +16,6 @@ type Status interface {
 }
 
 func NewRecordStatus(obj Status) ddlog.Record {
-	if obj == nil {
-		return ddlog.NewRecordNull() 
-	}
 	return obj.NewRecord()
 }
 

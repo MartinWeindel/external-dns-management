@@ -42,8 +42,15 @@ func NewDeleteValCommandAccountResult(obj *AccountResult) ddlog.Command {
 	return ddlog.NewDeleteValCommand(relTableIDAccountResult, rec)
 }
 func NewDeleteKeyCommandAccountResult(obj *AccountResult) ddlog.Command {
-	rec := NewRecordAccountResult(obj)
+	rec := NewKeyRecordAccountResult(obj)
 	return ddlog.NewDeleteKeyCommand(relTableIDAccountResult, rec)
+}
+
+
+func NewKeyRecordAccountResult(obj *AccountResult) ddlog.Record {
+	return func() ddlog.Record {
+	    return ddlog.NewRecordString(obj.CredentialsHash)
+    }()
 }
 
 func GetRelTableIDAccountResult() ddlog.TableID {

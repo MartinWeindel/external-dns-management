@@ -5,32 +5,27 @@ package generated
 
 import (
 	"fmt"
-
 	"github.com/pkg/errors"
 	"github.com/vmware/differential-datalog/go/pkg/ddlog"
 )
+
 
 var (
 	// memory will never be freed, which is fine
 	relConstructorDNSProviderSpec = ddlog.NewCString("DNSProviderSpec")
 )
 
+
 func NewRecordDNSProviderSpec(obj *DNSProviderSpec) ddlog.Record {
 	arg0 := func() ddlog.Record {
-		return NewRecordObjectKey(&obj.Key)
-	}()
+	    return NewRecordObjectKey(&obj.Key)
+    }()
 	arg1 := func() ddlog.Record {
-		return NewRecordProviderSpec(&obj.Spec)
-	}()
+	    return NewRecordProviderSpec(&obj.Spec)
+    }()
 	return ddlog.NewRecordStructStatic(relConstructorDNSProviderSpec, arg0, arg1)
 }
 
-func NewRecordKey_DNSProviderSpec(obj *DNSProviderSpec) ddlog.Record {
-	arg0 := func() ddlog.Record {
-		return NewRecordObjectKey(&obj.Key)
-	}()
-	return arg0
-}
 
 func DNSProviderSpecFromRecord(record ddlog.Record) (*DNSProviderSpec, error) {
 	rs, err := record.AsStructSafe()
@@ -48,14 +43,14 @@ func DNSProviderSpecFromRecord(record ddlog.Record) (*DNSProviderSpec, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "Field spec")
 	}
-	obj := &DNSProviderSpec{
-		Key:  *arg0,
-		Spec: *arg1,
+	obj := &DNSProviderSpec{	
+		Key:*arg0,	
+		Spec:*arg1,
 	}
 	return obj, nil
 }
 
 type DNSProviderSpec struct {
-	Key  ObjectKey
-	Spec ProviderSpec
+    Key ObjectKey
+    Spec ProviderSpec
 }

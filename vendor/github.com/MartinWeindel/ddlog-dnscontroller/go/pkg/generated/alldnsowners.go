@@ -18,8 +18,8 @@ var (
 
 func NewRecordAllDNSOwners(obj *AllDNSOwners) ddlog.Record {
 	arg0 := func() ddlog.Record {
-	    vec := make([]ddlog.Record, len(obj.Owners))
-	for i, item := range obj.Owners {
+	    vec := make([]ddlog.Record, len(obj.OwnerIds))
+	for i, item := range obj.OwnerIds {
 		vec[i] = ddlog.NewRecordString(item)
 	}
     return ddlog.NewRecordVector(vec...)
@@ -53,14 +53,14 @@ func AllDNSOwnersFromRecord(record ddlog.Record) (*AllDNSOwners, error) {
 		return vec, nil
 	}()
 	if err != nil {
-		return nil, errors.Wrapf(err, "Field owners")
+		return nil, errors.Wrapf(err, "Field ownerIds")
 	}
 	obj := &AllDNSOwners{	
-		Owners:arg0,
+		OwnerIds:arg0,
 	}
 	return obj, nil
 }
 
 type AllDNSOwners struct {
-    Owners []string
+    OwnerIds []string
 }

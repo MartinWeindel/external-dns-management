@@ -41,6 +41,17 @@ func NewDeleteValCommandDNSOwner(obj *DNSOwner) ddlog.Command {
 	rec := NewRecordDNSOwner(obj)
 	return ddlog.NewDeleteValCommand(relTableIDDNSOwner, rec)
 }
+func NewDeleteKeyCommandDNSOwner(obj *DNSOwner) ddlog.Command {
+	rec := NewKeyRecordDNSOwner(obj)
+	return ddlog.NewDeleteKeyCommand(relTableIDDNSOwner, rec)
+}
+
+
+func NewKeyRecordDNSOwner(obj *DNSOwner) ddlog.Record {
+	return func() ddlog.Record {
+	    return ddlog.NewRecordString(obj.Name)
+    }()
+}
 
 func GetRelTableIDDNSOwner() ddlog.TableID {
 	return relTableIDDNSOwner

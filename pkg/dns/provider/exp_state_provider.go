@@ -134,7 +134,7 @@ func (s *expState) ProviderDeleted(logger logger.LogContext, key resources.Objec
 	return s.deleteProvider(logger, key.ObjectName())
 }
 
-func (s *expState) RemoveProvider(logger logger.LogContext, obj *dnsutils.DNSProviderObject) reconcile.Status {
+func (s *expState) DeleteProvider(logger logger.LogContext, obj *dnsutils.DNSProviderObject) reconcile.Status {
 	pname := obj.ObjectName()
 	return s.deleteProvider(logger, pname)
 }

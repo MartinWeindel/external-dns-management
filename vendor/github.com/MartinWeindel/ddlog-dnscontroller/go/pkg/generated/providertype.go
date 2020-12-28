@@ -16,9 +16,6 @@ type ProviderType interface {
 }
 
 func NewRecordProviderType(obj ProviderType) ddlog.Record {
-	if obj == nil {
-		return ddlog.NewRecordNull() 
-	}
 	return obj.NewRecord()
 }
 

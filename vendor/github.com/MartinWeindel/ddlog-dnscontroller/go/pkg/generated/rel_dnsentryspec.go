@@ -42,8 +42,15 @@ func NewDeleteValCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
 	return ddlog.NewDeleteValCommand(relTableIDDNSEntrySpec, rec)
 }
 func NewDeleteKeyCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
-	rec := NewRecordDNSEntrySpec(obj)
+	rec := NewKeyRecordDNSEntrySpec(obj)
 	return ddlog.NewDeleteKeyCommand(relTableIDDNSEntrySpec, rec)
+}
+
+
+func NewKeyRecordDNSEntrySpec(obj *DNSEntrySpec) ddlog.Record {
+	return func() ddlog.Record {
+	    return NewRecordObjectKey(&obj.Key)
+    }()
 }
 
 func GetRelTableIDDNSEntrySpec() ddlog.TableID {

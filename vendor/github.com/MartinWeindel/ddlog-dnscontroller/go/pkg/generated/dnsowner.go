@@ -20,7 +20,13 @@ func NewRecordDNSOwner(obj *DNSOwner) ddlog.Record {
 	arg0 := func() ddlog.Record {
 	    return ddlog.NewRecordString(obj.Name)
     }()
-	return ddlog.NewRecordStructStatic(relConstructorDNSOwner, arg0)
+	arg1 := func() ddlog.Record {
+	    return ddlog.NewRecordString(obj.OwnerId)
+    }()
+	arg2 := func() ddlog.Record {
+	    return ddlog.NewRecordBool(obj.Active)
+    }()
+	return ddlog.NewRecordStructStatic(relConstructorDNSOwner, arg0, arg1, arg2)
 }
 
 
@@ -36,12 +42,24 @@ func DNSOwnerFromRecord(record ddlog.Record) (*DNSOwner, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "Field name")
 	}
+	arg1, err := rs.At(1).ToStringSafe()
+	if err != nil {
+		return nil, errors.Wrapf(err, "Field ownerId")
+	}
+	arg2, err := rs.At(2).ToBoolSafe()
+	if err != nil {
+		return nil, errors.Wrapf(err, "Field active")
+	}
 	obj := &DNSOwner{	
-		Name:arg0,
+		Name:arg0,	
+		OwnerId:arg1,	
+		Active:arg2,
 	}
 	return obj, nil
 }
 
 type DNSOwner struct {
     Name string
+    OwnerId string
+    Active bool
 }

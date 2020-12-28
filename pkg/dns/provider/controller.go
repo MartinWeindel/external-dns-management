@@ -225,29 +225,16 @@ func (this *reconciler) Command(logger logger.LogContext, cmd string) reconcile.
 	return reconcile.Succeeded(logger)
 }
 
+// TODO responsiblefor: implement classes in datalog
+// TODO duplicatecheck for dnsowner in datalog
 func (this *reconciler) Reconcile(logger logger.LogContext, obj resources.Object) reconcile.Status {
 	switch {
 	case obj.IsA(&api.DNSOwner{}):
-		if this.state.IsResponsibleFor(logger, obj) {
-			return this.state.UpdateOwner(logger, dnsutils.DNSOwner(obj), false)
-		} else {
-			return this.state.OwnerDeleted(logger, obj.Key())
-		}
+		return this.expstate.UpdateOwner(logger, dnsutils.DNSOwner(obj))
 	case obj.IsA(&api.DNSProvider{}):
 		return this.expstate.UpdateProvider(logger, dnsutils.DNSProvider(obj))
-		/*
-			if this.state.IsResponsibleFor(logger, obj) {
-				return this.state.UpdateProvider(logger, dnsutils.DNSProvider(obj))
-			} else {
-				return this.state.RemoveProvider(logger, dnsutils.DNSProvider(obj))
-			}
-		*/
 	case obj.IsA(&api.DNSEntry{}):
-		if this.state.IsResponsibleFor(logger, obj) {
-			return this.state.UpdateEntry(logger, dnsutils.DNSEntry(obj))
-		} else {
-			return this.state.EntryDeleted(logger, obj.ClusterKey())
-		}
+		return this.expstate.UpdateEntry(logger, dnsutils.DNSEntry(obj))
 	case obj.IsA(&corev1.Secret{}):
 		return this.state.UpdateSecret(logger, obj)
 	}
@@ -259,10 +246,10 @@ func (this *reconciler) Delete(logger logger.LogContext, obj resources.Object) r
 		logger.Debugf("should delete %s", obj.Description())
 		switch {
 		case obj.IsA(&api.DNSProvider{}):
-			return this.expstate.RemoveProvider(logger, dnsutils.DNSProvider(obj))
+			return this.expstate.DeleteProvider(logger, dnsutils.DNSProvider(obj))
 		case obj.IsA(&api.DNSEntry{}):
 			obj.UpdateFromCache()
-			return this.state.DeleteEntry(logger, dnsutils.DNSEntry(obj))
+			return this.expstate.DeleteEntry(logger, dnsutils.DNSEntry(obj))
 		case obj.IsA(&corev1.Secret{}):
 			return this.state.UpdateSecret(logger, obj)
 		}
@@ -274,7 +261,7 @@ func (this *reconciler) Deleted(logger logger.LogContext, key resources.ClusterO
 	logger.Debugf("deleted %s", key)
 	switch key.GroupKind() {
 	case ownerGroupKind:
-		return this.state.OwnerDeleted(logger, key.ObjectKey())
+		return this.expstate.OwnerDeleted(logger, key.ObjectKey())
 	case providerGroupKind:
 		return this.expstate.ProviderDeleted(logger, key.ObjectKey())
 	case entryGroupKind:
