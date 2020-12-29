@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 
 	"github.com/MartinWeindel/ddlog-dnscontroller/go/pkg/generated"
@@ -19,10 +21,34 @@ func refineLogger(logger logger.LogContext, ptype string) logger.LogContext {
 	return logger
 }
 
+func (s *expState) addKnownProvider(name resources.ObjectName) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.knownProviders.Add(name)
+}
+
+func (s *expState) removeKnownProvider(name resources.ObjectName) bool {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if !s.knownProviders.Contains(name) {
+		return false
+	}
+	s.knownProviders.Remove(name)
+	return true
+}
+
 func (s *expState) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSProviderObject) reconcile.Status {
 	logger = refineLogger(logger, obj.TypeCode())
 	logger.Infof("reconcile PROVIDER")
 	defer logger.Infof("end - reconcile PROVIDER")
+
+	s.addKnownProvider(obj.ObjectName())
+	err := s.context.SetFinalizer(obj)
+	if err != nil {
+		return reconcile.Delay(logger, fmt.Errorf("cannot set finalizer: %s", err))
+	}
 
 	spec := obj.Spec()
 	if spec.Type == "cloudflare-dns" {
@@ -135,17 +161,22 @@ func (s *expState) ProviderDeleted(logger logger.LogContext, key resources.Objec
 }
 
 func (s *expState) DeleteProvider(logger logger.LogContext, obj *dnsutils.DNSProviderObject) reconcile.Status {
-	pname := obj.ObjectName()
-	return s.deleteProvider(logger, pname)
+	err := s.context.RemoveFinalizer(obj)
+	if err != nil {
+		return reconcile.Delay(logger, fmt.Errorf("cannot remove finalizer: %s", err))
+	}
+	return s.deleteProvider(logger, obj.ObjectName())
 }
 
 func (s *expState) deleteProvider(logger logger.LogContext, name resources.ObjectName) reconcile.Status {
-	spec := &generated.DNSProviderSpec{
-		Key: generated.ObjectKey{Arg0: name.Namespace(), Arg1: name.Name()},
-	}
-	cmd := generated.NewDeleteKeyCommandDNSProviderSpec(spec)
-	if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
-		return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteProvider"))
+	if s.removeKnownProvider(name) {
+		spec := &generated.DNSProviderSpec{
+			Key: generated.ObjectKey{Arg0: name.Namespace(), Arg1: name.Name()},
+		}
+		cmd := generated.NewDeleteKeyCommandDNSProviderSpec(spec)
+		if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
+			return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteProvider"))
+		}
 	}
 	return reconcile.Succeeded(logger)
 }

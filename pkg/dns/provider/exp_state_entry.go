@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+
 	"github.com/gardener/controller-manager-library/pkg/controllermanager/controller/reconcile"
 	"github.com/gardener/controller-manager-library/pkg/logger"
 	"github.com/gardener/controller-manager-library/pkg/resources"
@@ -8,9 +10,33 @@ import (
 	dnsutils "github.com/gardener/external-dns-management/pkg/dns/utils"
 )
 
+func (s *expState) addKnownEntry(name resources.ObjectName) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.knownEntries.Add(name)
+}
+
+func (s *expState) removeKnownEntry(name resources.ObjectName) bool {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if !s.knownEntries.Contains(name) {
+		return false
+	}
+	s.knownEntries.Remove(name)
+	return true
+}
+
 func (s *expState) UpdateEntry(logger logger.LogContext, obj *dnsutils.DNSEntryObject) reconcile.Status {
 	logger.Infof("reconcile ENTRY")
 	defer logger.Infof("end - reconcile ENTRY")
+
+	s.addKnownEntry(obj.ObjectName())
+	err := s.context.SetFinalizer(obj)
+	if err != nil {
+		return reconcile.Delay(logger, fmt.Errorf("cannot set finalizer: %s", err))
+	}
 
 	//spec := obj.Spec()
 	/*
@@ -125,19 +151,24 @@ func (s *expState) EntryDeleted(logger logger.LogContext, key resources.ObjectKe
 }
 
 func (s *expState) DeleteEntry(logger logger.LogContext, obj *dnsutils.DNSEntryObject) reconcile.Status {
-	name := obj.ObjectName()
-	return s.deleteEntry(logger, name)
+	err := s.context.RemoveFinalizer(obj)
+	if err != nil {
+		return reconcile.Delay(logger, fmt.Errorf("cannot remove finalizer: %s", err))
+	}
+	return s.deleteEntry(logger, obj.ObjectName())
 }
 
 func (s *expState) deleteEntry(logger logger.LogContext, name resources.ObjectName) reconcile.Status {
-	/*
-		spec := &generated.DNSProviderSpec{
-			Key: generated.ObjectKey{Arg0: name.Namespace(), Arg1: name.Name()},
-		}
-		cmd := generated.NewDeleteKeyCommandDNSProviderSpec(spec)
-		if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
-			return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteProvider"))
-		}
-	*/
+	if s.removeKnownEntry(name) {
+		/*
+			spec := &generated.DNSProviderSpec{
+				Key: generated.ObjectKey{Arg0: name.Namespace(), Arg1: name.Name()},
+			}
+			cmd := generated.NewDeleteKeyCommandDNSProviderSpec(spec)
+			if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
+				return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteProvider"))
+			}
+		*/
+	}
 	return reconcile.Succeeded(logger)
 }

@@ -11,10 +11,29 @@ import (
 	dnsutils "github.com/gardener/external-dns-management/pkg/dns/utils"
 )
 
+func (s *expState) addKnownOwner(name resources.ObjectName) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.knownOwners.Add(name)
+}
+
+func (s *expState) removeKnownOwner(name resources.ObjectName) bool {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if !s.knownOwners.Contains(name) {
+		return false
+	}
+	s.knownOwners.Remove(name)
+	return true
+}
+
 func (s *expState) UpdateOwner(logger logger.LogContext, obj *dnsutils.DNSOwnerObject) reconcile.Status {
 	logger.Infof("reconcile OWNER")
 	defer logger.Infof("end - reconcile OWNER")
 
+	s.addKnownOwner(obj.ObjectName())
 	spec := obj.Spec()
 	active := true
 	if spec.Active != nil {
@@ -35,10 +54,12 @@ func (s *expState) OwnerDeleted(logger logger.LogContext, key resources.ObjectKe
 }
 
 func (s *expState) deleteOwner(logger logger.LogContext, name resources.ObjectName) reconcile.Status {
-	pk := &generated.DNSOwner{Name: name.Name()}
-	cmd := generated.NewDeleteKeyCommandDNSOwner(pk)
-	if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
-		return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteOwner"))
+	if s.removeKnownOwner(name) {
+		pk := &generated.DNSOwner{Name: name.Name()}
+		cmd := generated.NewDeleteKeyCommandDNSOwner(pk)
+		if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
+			return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteOwner"))
+		}
 	}
 	return reconcile.Succeeded(logger)
 }

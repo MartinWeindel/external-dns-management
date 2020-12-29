@@ -34,11 +34,13 @@ type expState struct {
 
 	lock                sync.Mutex
 	providerUpdateQueue map[resources.ObjectName][]*generated.DNSProviderStatus
+	knownProviders      resources.ObjectNameSet
+	knownEntries        resources.ObjectNameSet
+	knownOwners         resources.ObjectNameSet
 }
 
 type expOutRecordPrinter struct {
 	changesMutex sync.Mutex
-	clusterId    string
 	state        *expState
 }
 
@@ -71,6 +73,9 @@ func newExpState(context Context, classes *controller.Classes, config Config) *e
 		credentials:         map[string]utils.Properties{},
 		providerUpdateQueue: map[resources.ObjectName][]*generated.DNSProviderStatus{},
 		accountCache:        NewAccountCache(config.CacheTTL, config.CacheDir, config.Options),
+		knownProviders:      resources.ObjectNameSet{},
+		knownEntries:        resources.ObjectNameSet{},
+		knownOwners:         resources.ObjectNameSet{},
 	}
 }
 
