@@ -226,7 +226,7 @@ func (this *reconciler) Command(logger logger.LogContext, cmd string) reconcile.
 }
 
 // TODO duplicatecheck for dnsowner in datalog
-// TODO provider handle finalizer
+// TODO set provider in entry status
 func (this *reconciler) Reconcile(logger logger.LogContext, obj resources.Object) reconcile.Status {
 	switch {
 	case obj.IsA(&api.DNSOwner{}):

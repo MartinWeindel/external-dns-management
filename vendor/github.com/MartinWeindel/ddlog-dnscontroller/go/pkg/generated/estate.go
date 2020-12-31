@@ -18,22 +18,28 @@ var (
 
 func NewRecordEState(obj *EState) ddlog.Record {
 	arg0 := func() ddlog.Record {
-	    return ddlog.NewRecordString(obj.Owner)
+	    return NewRecordProviderType(obj.Ptype)
     }()
 	arg1 := func() ddlog.Record {
-	    return ddlog.NewRecordString(obj.Domain)
+	    return ddlog.NewRecordString(obj.Zoneid)
     }()
 	arg2 := func() ddlog.Record {
-	    return ddlog.NewRecordU32(obj.Ttl)
+	    return ddlog.NewRecordString(obj.Owner)
     }()
 	arg3 := func() ddlog.Record {
+	    return ddlog.NewRecordString(obj.Domain)
+    }()
+	arg4 := func() ddlog.Record {
+	    return ddlog.NewRecordU32(obj.Ttl)
+    }()
+	arg5 := func() ddlog.Record {
 	    vec := make([]ddlog.Record, len(obj.Records))
 	for i, item := range obj.Records {
 		vec[i] = ddlog.NewRecordString(item)
 	}
     return ddlog.NewRecordVector(vec...)
     }()
-	return ddlog.NewRecordStructStatic(relConstructorEState, arg0, arg1, arg2, arg3)
+	return ddlog.NewRecordStructStatic(relConstructorEState, arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 
@@ -45,21 +51,29 @@ func EStateFromRecord(record ddlog.Record) (*EState, error) {
 	if rs.Name() != "EState" {
 		return nil, fmt.Errorf("unexpected record %s != EState", rs.Name())
 	}
-	arg0, err := rs.At(0).ToStringSafe()
+	arg0, err := ProviderTypeFromRecord(rs.At(0))
 	if err != nil {
-		return nil, errors.Wrapf(err, "Field owner")
+		return nil, errors.Wrapf(err, "Field ptype")
 	}
 	arg1, err := rs.At(1).ToStringSafe()
 	if err != nil {
+		return nil, errors.Wrapf(err, "Field zoneid")
+	}
+	arg2, err := rs.At(2).ToStringSafe()
+	if err != nil {
+		return nil, errors.Wrapf(err, "Field owner")
+	}
+	arg3, err := rs.At(3).ToStringSafe()
+	if err != nil {
 		return nil, errors.Wrapf(err, "Field domain")
 	}
-	arg2, err := rs.At(2).ToU32Safe()
+	arg4, err := rs.At(4).ToU32Safe()
 	if err != nil {
 		return nil, errors.Wrapf(err, "Field ttl")
 	}
-	arg3, err := 
+	arg5, err := 
 	func() ([]string, error) {
-		rv, err := rs.At(3).AsVectorSafe()
+		rv, err := rs.At(5).AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}
@@ -77,15 +91,19 @@ func EStateFromRecord(record ddlog.Record) (*EState, error) {
 		return nil, errors.Wrapf(err, "Field records")
 	}
 	obj := &EState{	
-		Owner:arg0,	
-		Domain:arg1,	
-		Ttl:arg2,	
-		Records:arg3,
+		Ptype:arg0,	
+		Zoneid:arg1,	
+		Owner:arg2,	
+		Domain:arg3,	
+		Ttl:arg4,	
+		Records:arg5,
 	}
 	return obj, nil
 }
 
 type EState struct {
+    Ptype ProviderType
+    Zoneid string
     Owner string
     Domain string
     Ttl uint32

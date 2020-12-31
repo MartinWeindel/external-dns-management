@@ -17,6 +17,7 @@ import (
 	"github.com/vmware/differential-datalog/go/pkg/ddlog"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/klog"
 )
 
@@ -34,6 +35,7 @@ type expState struct {
 
 	lock                sync.Mutex
 	providerUpdateQueue map[resources.ObjectName][]*generated.DNSProviderStatus
+	entryUpdateQueue    map[resources.ObjectName][]*generated.DNSEntryStatus
 	knownProviders      resources.ObjectNameSet
 	knownEntries        resources.ObjectNameSet
 	knownOwners         resources.ObjectNameSet
@@ -59,6 +61,9 @@ func (p *expOutRecordPrinter) Handle(tableID ddlog.TableID, r ddlog.Record, weig
 	if tableID == generated.GetRelTableIDDNSProviderStatus() {
 		o := obj.(*generated.DNSProviderStatus)
 		p.state.AddProviderStatusToQueueAndEnqueue(o)
+	} else if tableID == generated.GetRelTableIDDNSEntryStatus() {
+		o := obj.(*generated.DNSEntryStatus)
+		p.state.AddEntryStatusToQueueAndEnqueue(o)
 	}
 	s, _ := json.MarshalIndent(obj, "", "  ")
 	fmt.Printf("%s[%s] %d: %s\n%s\n", meta.TableName, meta.RecordName, weight, s, r.Dump())
@@ -72,6 +77,7 @@ func newExpState(context Context, classes *controller.Classes, config Config) *e
 		classes:             classes,
 		credentials:         map[string]utils.Properties{},
 		providerUpdateQueue: map[resources.ObjectName][]*generated.DNSProviderStatus{},
+		entryUpdateQueue:    map[resources.ObjectName][]*generated.DNSEntryStatus{},
 		accountCache:        NewAccountCache(config.CacheTTL, config.CacheDir, config.Options),
 		knownProviders:      resources.ObjectNameSet{},
 		knownEntries:        resources.ObjectNameSet{},
@@ -151,8 +157,16 @@ func (s *expState) hashAndCache(secretProps utils.Properties) string {
 
 func (s *expState) AddProviderStatusToQueueAndEnqueue(obj *generated.DNSProviderStatus) {
 	s.addProviderStatusToQueue(obj)
+	s.enqueueObject(PROVIDER_CLUSTER, providerGroupKind, obj.Key)
+}
 
-	key := resources.NewClusterKey(s.context.GetClusterId(PROVIDER_CLUSTER), providerGroupKind, obj.Key.Arg0, obj.Key.Arg1)
+func (s *expState) AddEntryStatusToQueueAndEnqueue(obj *generated.DNSEntryStatus) {
+	s.addEntryStatusToQueue(obj)
+	s.enqueueObject(TARGET_CLUSTER, entryGroupKind, obj.Key)
+}
+
+func (s *expState) enqueueObject(clusterID string, gk schema.GroupKind, objKey generated.ObjectKey) {
+	key := resources.NewClusterKey(s.context.GetClusterId(clusterID), gk, objKey.Arg0, objKey.Arg1)
 	err := s.context.EnqueueKey(key)
 	if err != nil {
 		s.context.Errorf("enqueue key %s failed: %s\n", key, err)
@@ -166,8 +180,7 @@ func (s *expState) addProviderStatusToQueue(obj *generated.DNSProviderStatus) {
 
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	list := s.providerUpdateQueue[name]
-	s.providerUpdateQueue[name] = append(list, obj)
+	s.providerUpdateQueue[name] = append(s.providerUpdateQueue[name], obj)
 }
 
 func (s *expState) nextProviderStatusesFromQueue(name resources.ObjectName) []*generated.DNSProviderStatus {
@@ -178,5 +191,24 @@ func (s *expState) nextProviderStatusesFromQueue(name resources.ObjectName) []*g
 		return nil
 	}
 	delete(s.providerUpdateQueue, name)
+	return list
+}
+
+func (s *expState) addEntryStatusToQueue(obj *generated.DNSEntryStatus) {
+	name := resources.NewObjectName(obj.Key.Arg0, obj.Key.Arg1)
+
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.entryUpdateQueue[name] = append(s.entryUpdateQueue[name], obj)
+}
+
+func (s *expState) nextEntryStatusesFromQueue(name resources.ObjectName) []*generated.DNSEntryStatus {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	list, ok := s.entryUpdateQueue[name]
+	if !ok || len(list) == 0 {
+		return nil
+	}
+	delete(s.entryUpdateQueue, name)
 	return list
 }
