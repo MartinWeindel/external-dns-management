@@ -41,6 +41,30 @@ func NewDeleteValCommandRecordSet(obj *RecordSet) ddlog.Command {
 	rec := NewRecordRecordSet(obj)
 	return ddlog.NewDeleteValCommand(relTableIDRecordSet, rec)
 }
+func NewDeleteKeyCommandRecordSet(obj *RecordSet) ddlog.Command {
+	rec := NewKeyRecordRecordSet(obj)
+	return ddlog.NewDeleteKeyCommand(relTableIDRecordSet, rec)
+}
+
+
+func NewKeyRecordRecordSet(obj *RecordSet) ddlog.Record {
+	arg0 := func() ddlog.Record {
+	    return ddlog.NewRecordString(obj.Owner)
+    }()
+	arg1 := func() ddlog.Record {
+	    return NewRecordProviderType(obj.Ptype)
+    }()
+	arg2 := func() ddlog.Record {
+	    return ddlog.NewRecordString(obj.Zoneid)
+    }()
+	arg3 := func() ddlog.Record {
+	    return ddlog.NewRecordString(obj.Domain)
+    }()
+	arg4 := func() ddlog.Record {
+	    return NewRecordRecordType(obj.Rtype)
+    }()
+	return ddlog.NewRecordTuple(arg0,arg1,arg2,arg3,arg4)
+}
 
 func GetRelTableIDRecordSet() ddlog.TableID {
 	return relTableIDRecordSet

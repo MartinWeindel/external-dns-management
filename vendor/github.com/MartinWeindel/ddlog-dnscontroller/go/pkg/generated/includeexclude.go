@@ -74,7 +74,8 @@ func IncludeExcludeFromRecord(record ddlog.Record) (*IncludeExclude, error) {
 		case "ddlog_std::Some":
 			value, err := 
 	func() ([]string, error) {
-		rv, err := rs.At(0).AsVectorSafe()
+		rv0 := rs.At(0)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +108,8 @@ func IncludeExcludeFromRecord(record ddlog.Record) (*IncludeExclude, error) {
 		case "ddlog_std::Some":
 			value, err := 
 	func() ([]string, error) {
-		rv, err := rs.At(0).AsVectorSafe()
+		rv0 := rs.At(0)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}

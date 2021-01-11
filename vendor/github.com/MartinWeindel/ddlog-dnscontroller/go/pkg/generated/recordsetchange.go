@@ -76,7 +76,8 @@ func RecordSetChangeFromRecord(record ddlog.Record) (*RecordSetChange, error) {
 	}
 	arg2, err := 
 	func() ([]RecordSetData, error) {
-		rv, err := rs.At(2).AsVectorSafe()
+		rv0 := rs.At(2)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +96,8 @@ func RecordSetChangeFromRecord(record ddlog.Record) (*RecordSetChange, error) {
 	}
 	arg3, err := 
 	func() ([]RecordSetData, error) {
-		rv, err := rs.At(3).AsVectorSafe()
+		rv0 := rs.At(3)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +116,8 @@ func RecordSetChangeFromRecord(record ddlog.Record) (*RecordSetChange, error) {
 	}
 	arg4, err := 
 	func() ([]RecordSetData, error) {
-		rv, err := rs.At(4).AsVectorSafe()
+		rv0 := rs.At(4)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}
@@ -132,23 +135,22 @@ func RecordSetChangeFromRecord(record ddlog.Record) (*RecordSetChange, error) {
 		return nil, errors.Wrapf(err, "Field delete")
 	}
 	arg5, err := func() (map[ObjectKey]EntryStatus, error) {
-		rv, err := rs.At(5).AsVectorSafe()
+		rv0 := rs.At(5)
+		rv, err := rv0.AsMapSafe()
 		if err != nil {
 			return nil, err
 		}
 		result := map[ObjectKey]EntryStatus{}
 		for i := 0; i < rv.Size(); i++ {
-			rt, err := rv.At(i).AsTupleSafe()
+			key := rv.KeyAt(i)
+			value := rv.ValueAt(i)
+			k, err := ObjectKeyFromRecord(key)
 			if err != nil {
-				errors.Wrapf(err, "map index %d", i)
+				errors.Wrapf(err, "map key(%d)", i)
 			}
-			k, err := ObjectKeyFromRecord(rt.At(0))
+			v, err := EntryStatusFromRecord(value)
 			if err != nil {
-				errors.Wrapf(err, "map key index %d", i)
-			}
-			v, err := EntryStatusFromRecord(rt.At(1))
-			if err != nil {
-				errors.Wrapf(err, "map value index %d", i)
+				errors.Wrapf(err, "map value(%d)", i)
 			}
 			result[*k] =v
 		}

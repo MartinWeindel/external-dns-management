@@ -80,7 +80,8 @@ func RecordSetFromRecord(record ddlog.Record) (*RecordSet, error) {
 	}
 	arg6, err := 
 	func() ([]string, error) {
-		rv, err := rs.At(6).AsVectorSafe()
+		rv0 := rs.At(6)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}

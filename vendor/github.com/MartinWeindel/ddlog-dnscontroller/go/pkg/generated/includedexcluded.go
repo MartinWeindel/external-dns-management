@@ -45,7 +45,8 @@ func IncludedExcludedFromRecord(record ddlog.Record) (*IncludedExcluded, error) 
 	}
 	arg0, err := 
 	func() ([]string, error) {
-		rv, err := rs.At(0).AsVectorSafe()
+		rv0 := rs.At(0)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}
@@ -64,7 +65,8 @@ func IncludedExcludedFromRecord(record ddlog.Record) (*IncludedExcluded, error) 
 	}
 	arg1, err := 
 	func() ([]string, error) {
-		rv, err := rs.At(1).AsVectorSafe()
+		rv0 := rs.At(1)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}

@@ -149,17 +149,24 @@ func NewAccountCache(ttl time.Duration, dir string, opts *FactoryOptions) *Accou
 	}
 }
 
-func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSProviderObject, props utils.Properties, state stateCommon) (*DNSAccount, error) {
+func (this *AccountCache) GetByHash(hash string) *DNSAccount {
+	this.lock.Lock()
+	defer this.lock.Unlock()
+	return this.cache[hash]
+}
+
+func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSProviderObject, props utils.Properties, state stateCommon) (*DNSAccount, bool, error) {
 	name := provider.ObjectName()
 	hash := this.Hash(props, provider.Spec().Type, provider.Spec().ProviderConfig)
 	this.lock.Lock()
 	defer this.lock.Unlock()
 	a := this.cache[hash]
+	new := false
 	if a == nil {
 		a = NewDNSAccount(props, nil, hash)
 		syncPeriod := state.GetContext().GetPoolPeriod("dns")
 		if syncPeriod == nil {
-			return nil, fmt.Errorf("Pool dns not found")
+			return nil, new, fmt.Errorf("Pool dns not found")
 		}
 		persistDir := ""
 		if this.dir != "" {
@@ -180,7 +187,7 @@ func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSPr
 			rateLimiterConfig := this.options.GetRateLimiterConfig()
 			rateLimiter, err = rateLimiterConfig.NewRateLimiter()
 			if err != nil {
-				return nil, pkgerrors.Wrap(err, "invalid rate limiter")
+				return nil, new, pkgerrors.Wrap(err, "invalid rate limiter")
 			}
 			logger.Infof("rate limiter for %s: %v", name, rateLimiterConfig)
 		}
@@ -198,10 +205,11 @@ func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSPr
 		}
 		a.handler, err = state.GetConfig().Factory.Create(provider.TypeCode(), &cfg)
 		if err != nil {
-			return nil, err
+			return nil, new, err
 		}
 		logger.Infof("creating account for %s (%s)", name, a.Hash())
 		this.cache[hash] = a
+		new = true
 	}
 	old := len(a.clients)
 	a.clients.Add(name)
@@ -209,7 +217,7 @@ func (this *AccountCache) Get(logger logger.LogContext, provider *dnsutils.DNSPr
 		logger.Infof("reusing account for %s (%s): %d client(s)", name, a.Hash(), len(a.clients))
 	}
 	metrics.ReportAccountProviders(provider.Spec().Type, a.Hash(), len(a.clients))
-	return a, nil
+	return a, new, nil
 }
 
 var null = []byte{0}

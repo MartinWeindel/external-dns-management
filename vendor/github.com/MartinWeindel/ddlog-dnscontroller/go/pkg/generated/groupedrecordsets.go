@@ -52,7 +52,8 @@ func GroupedRecordSetsFromRecord(record ddlog.Record) (*GroupedRecordSets, error
 	}
 	arg2, err := 
 	func() ([]RecordSetData, error) {
-		rv, err := rs.At(2).AsVectorSafe()
+		rv0 := rs.At(2)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}

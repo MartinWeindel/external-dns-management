@@ -234,7 +234,8 @@ func (this *state) GetConfig() Config {
 }
 
 func (this *state) GetDNSAccount(logger logger.LogContext, provider *dnsutils.DNSProviderObject, props utils.Properties) (*DNSAccount, error) {
-	return this.accountCache.Get(logger, provider, props, this)
+	account, _, err := this.accountCache.Get(logger, provider, props, this)
+	return account, err
 }
 
 func (this *state) GetHandlerFactory() DNSHandlerFactory {

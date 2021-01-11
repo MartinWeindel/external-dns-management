@@ -144,7 +144,9 @@ func DNSController(name string, factory DNSHandlerFactory) controller.Configurat
 			controller.NewResourceKey("core", "Secret"),
 		).
 		WorkerPool("dns", 1, 15*time.Minute).CommandMatchers(utils.NewStringGlobMatcher(CMD_HOSTEDZONE_PREFIX+"*")).
+		WorkerPool("account", 1, 0).CommandMatchers(utils.NewStringGlobMatcher(CMD_ACCOUNT_PREFIX+"*")).
 		WorkerPool("statistic", 1, 0).Commands(CMD_STATISTIC).
+		WorkerPool("ddlog", 1, 2*time.Second).Commands(CMD_DDLOG_UPDATE).
 		OptionSource(FACTORY_OPTIONS, FactoryOptionSourceCreator(factory))
 	return cfg
 }
@@ -203,22 +205,29 @@ func Create(c controller.Interface, factory DNSHandlerFactory) (reconcile.Interf
 
 func (this *reconciler) Setup() error {
 	this.controller.Infof("*** state Setup ")
-	this.state.Setup()
+	//this.state.Setup()
 	return this.expstate.Setup()
 }
 
 func (this *reconciler) Start() {
 	this.controller.GetPool("dns").StartTicker()
-	this.state.Start()
+	//this.state.Start()
+	this.expstate.Start()
 }
 
 func (this *reconciler) Command(logger logger.LogContext, cmd string) reconcile.Status {
 	if cmd == CMD_STATISTIC {
-		this.state.UpdateOwnerCounts(logger)
+		this.expstate.UpdateOwnerCounts(logger)
+	} else if cmd == CMD_DDLOG_UPDATE {
+		this.expstate.UpdateDDLog(logger)
 	} else {
-		zoneid := this.state.DecodeZoneCommand(cmd)
+		zoneid := this.expstate.DecodeZoneCommand(cmd)
 		if zoneid != "" {
-			return this.state.ReconcileZone(logger, zoneid)
+			return this.expstate.ReconcileZone(logger, zoneid)
+		}
+		hash := this.expstate.DecodeAccountCommand(cmd)
+		if hash != "" {
+			return this.expstate.ReconcileAccount(logger, hash)
 		}
 		logger.Infof("got unhandled command %q", cmd)
 	}

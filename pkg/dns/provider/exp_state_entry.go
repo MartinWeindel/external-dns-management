@@ -50,6 +50,8 @@ func (s *expState) UpdateEntry(logger logger.LogContext, obj *dnsutils.DNSEntryO
 	}
 	if spec.OwnerId != nil {
 		gspec.Spec.Owner = *spec.OwnerId
+	} else {
+		gspec.Spec.Owner = s.config.Ident
 	}
 	if spec.TTL != nil {
 		gspec.Spec.Ttl = uint32(*spec.TTL)
@@ -73,14 +75,36 @@ func (s *expState) UpdateEntry(logger logger.LogContext, obj *dnsutils.DNSEntryO
 	}
 	logger.Infof("Inserting dnsentryspec")
 	cmd := generated.NewInsertOrUpdateCommandDNSEntrySpec(gspec)
-	if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
-		return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction dnsentryspec"))
-	}
+	s.addToDDLogCommandQueue(cmd)
 	list := s.nextEntryStatusesFromQueue(obj.ObjectName())
 	for _, item := range list {
 		logger.Infof("updating status: %s", item.Status.Name())
 		status := obj.Status()
-		status.State = item.Status.Name()
+		switch v := item.Status.(type) {
+		case *generated.Unchanged:
+			status.State = "Ready"
+			status.Message = nil
+		case *generated.Inserting:
+			status.State = "Pending"
+			msg := "inserting entry"
+			status.Message = &msg
+		case *generated.Updating:
+			status.State = "Pending"
+			msg := "updating entry"
+			status.Message = &msg
+		case *generated.ForeignOwner:
+			status.State = "Error"
+			msg := fmt.Sprintf("entry has foreign owner %q", v.Owner)
+			status.Message = &msg
+		case *generated.OwnerConflict:
+			status.State = "Error"
+			msg := fmt.Sprintf("dnsname is already used by owner %q", v.Owner)
+			status.Message = &msg
+		case *generated.NoProvider:
+			status.State = "Error"
+			msg := "no matching provider"
+			status.Message = &msg
+		}
 		if item.State != nil {
 			ttl := int64(item.State.Ttl)
 			status.TTL = &ttl
@@ -89,7 +113,12 @@ func (s *expState) UpdateEntry(logger logger.LogContext, obj *dnsutils.DNSEntryO
 			status.ProviderType = &ptype
 		}
 	}
-	if len(list) > 0 {
+	zlist := s.nextEntryZonesFromQueue(obj.ObjectName())
+	for _, item := range zlist {
+		status := obj.Status()
+		status.Provider = &item.ProviderKey.Arg1
+	}
+	if len(list)+len(zlist) > 0 {
 		err := obj.UpdateStatus()
 		if err != nil {
 			return reconcile.Failed(logger, errors.Wrap(err, "UpdateStatus"))
@@ -117,9 +146,7 @@ func (s *expState) deleteEntry(logger logger.LogContext, name resources.ObjectNa
 			Key: generated.ObjectKey{Arg0: name.Namespace(), Arg1: name.Name()},
 		}
 		cmd := generated.NewDeleteKeyCommandDNSEntrySpec(spec)
-		if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
-			return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteEntry"))
-		}
+		s.addToDDLogCommandQueue(cmd)
 	}
 	return reconcile.Succeeded(logger)
 }

@@ -52,7 +52,8 @@ func ZoneFromRecord(record ddlog.Record) (*Zone, error) {
 	}
 	arg2, err := 
 	func() ([]string, error) {
-		rv, err := rs.At(2).AsVectorSafe()
+		rv0 := rs.At(2)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}

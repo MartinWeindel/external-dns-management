@@ -1,8 +1,6 @@
 package provider
 
 import (
-	"github.com/pkg/errors"
-
 	"github.com/MartinWeindel/ddlog-dnscontroller/go/pkg/generated"
 	"github.com/gardener/controller-manager-library/pkg/controllermanager/controller/reconcile"
 	"github.com/gardener/controller-manager-library/pkg/logger"
@@ -42,10 +40,7 @@ func (s *expState) UpdateOwner(logger logger.LogContext, obj *dnsutils.DNSOwnerO
 	owner := &generated.DNSOwner{Name: obj.GetName(), OwnerId: spec.OwnerId, Active: active}
 	logger.Infof("Inserting dnsowner")
 	cmd := generated.NewInsertOrUpdateCommandDNSOwner(owner)
-	// In practice, each transction would likely include more than one command.
-	if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
-		return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction dnsowner"))
-	}
+	s.addToDDLogCommandQueue(cmd)
 	return reconcile.Succeeded(logger)
 }
 
@@ -57,9 +52,27 @@ func (s *expState) deleteOwner(logger logger.LogContext, name resources.ObjectNa
 	if s.removeKnownOwner(name) {
 		pk := &generated.DNSOwner{Name: name.Name()}
 		cmd := generated.NewDeleteKeyCommandDNSOwner(pk)
-		if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
-			return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteOwner"))
-		}
+		s.addToDDLogCommandQueue(cmd)
+
 	}
 	return reconcile.Succeeded(logger)
+}
+
+func (s *expState) UpdateOwnerCounts(log logger.LogContext) {
+	// TODO migrate
+	/*
+		if !this.initialized {
+			return
+		}
+		log.Infof("update owner statistic")
+		statistic := statistic.NewEntryStatistic()
+		this.UpdateStatistic(statistic)
+		types := this.GetHandlerFactory().TypeCodes()
+		metrics.UpdateOwnerStatistic(statistic, types)
+		changes := this.ownerCache.UpdateCountsWith(statistic.Owners, types)
+		if len(changes) > 0 {
+			log.Infof("found %d changes for owner usages", len(changes))
+			this.ownerupd <- changes
+		}
+	*/
 }

@@ -39,6 +39,10 @@ func RecordTypeFromRecord(record ddlog.Record) (RecordType, error) {
 	
 	if rs.Name() == "NS" {
 		return &NS{T_: "NS"}, nil
+	}
+	
+	if rs.Name() == "ZONEROOT" {
+		return &ZONEROOT{T_: "ZONEROOT"}, nil
 	}	
 	return nil, errors.Wrap(fmt.Errorf("unexpected record name %s", rs.Name()), "enum RecordType")
 }
@@ -182,3 +186,38 @@ func (x *NS) NewRecord() ddlog.Record {
 func (x *NS) internalRecordType() {}
 
 func (x *NS) internalNS() {}
+
+
+var (
+	// memory will never be freed, which is fine
+	relConstructorZONEROOT = ddlog.NewCString("ZONEROOT")
+)
+
+type RecordType_ZONEROOT interface {
+	RecordType
+	internalZONEROOT()
+}
+
+var _ RecordType = &ZONEROOT{}
+var _ RecordType_ZONEROOT = &ZONEROOT{}
+
+
+func NewRecordZONEROOT(obj *ZONEROOT) ddlog.Record {
+	return ddlog.NewRecordStructStatic(relConstructorZONEROOT)
+}
+
+type ZONEROOT struct {
+	T_ string	
+}
+
+func (x *ZONEROOT) Name() string {
+	return "ZONEROOT"
+}
+
+func (x *ZONEROOT) NewRecord() ddlog.Record {
+	return NewRecordZONEROOT(x)
+}
+
+func (x *ZONEROOT) internalRecordType() {}
+
+func (x *ZONEROOT) internalZONEROOT() {}

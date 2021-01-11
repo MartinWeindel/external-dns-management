@@ -39,6 +39,13 @@ func (s *expState) removeKnownProvider(name resources.ObjectName) bool {
 	return true
 }
 
+func (s *expState) hasProviders() bool {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	return len(s.knownProviders) > 0
+}
+
 func (s *expState) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSProviderObject) reconcile.Status {
 	logger = refineLogger(logger, obj.TypeCode())
 	logger.Infof("reconcile PROVIDER")
@@ -92,12 +99,6 @@ func (s *expState) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSPro
 		Zones:           accountZones,
 	}
 	cmdAccountResult := generated.NewInsertOrUpdateCommandAccountResult(accountResult)
-	if err != nil {
-		if err2 := s.ddlogProgram.ApplyUpdatesAsTransaction(cmdAccountResult); err2 != nil {
-			logger.Warn(errors.Wrap(err, "ApplyUpdatesAsTransaction accountresult err"))
-		}
-		return reconcile.Failed(logger, errors.Wrap(err, "GetDNSAccount"))
-	}
 
 	domains := &v1alpha1.DNSSelection{}
 	if spec.Domains != nil {
@@ -122,25 +123,25 @@ func (s *expState) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSPro
 			},
 		},
 	}
-	logger.Infof("Inserting dnsproviderspec")
 	cmdProviderSpec := generated.NewInsertOrUpdateCommandDNSProviderSpec(gspec)
-	// In practice, each transction would likely include more than one command.
-	if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmdAccountResult, cmdProviderSpec); err != nil {
-		return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction dnsproviderspec"))
-	}
+
+	s.addToDDLogCommandQueue(cmdAccountResult, cmdProviderSpec)
 	list := s.nextProviderStatusesFromQueue(obj.ObjectName())
-	for _, item := range list {
-		logger.Infof("updating status: %s", item.Status.Name())
-		status := obj.Status()
-		status.State = item.Status.Name()
-		if item.State != nil {
-			status.Domains = v1alpha1.DNSSelectionStatus{
-				Included: item.State.Domains.Included,
-				Excluded: item.State.Domains.Excluded,
-			}
-			status.Zones = v1alpha1.DNSSelectionStatus{
-				Included: item.State.Zoneids.Included,
-				Excluded: item.State.Zoneids.Excluded,
+	for _, wrapped := range list {
+		item := wrapped.item
+		if wrapped.weight > 0 {
+			logger.Infof("updating status: %s", item.Status.Name())
+			status := obj.Status()
+			status.State = item.Status.Name()
+			if item.State != nil {
+				status.Domains = v1alpha1.DNSSelectionStatus{
+					Included: item.State.Domains.Included,
+					Excluded: item.State.Domains.Excluded,
+				}
+				status.Zones = v1alpha1.DNSSelectionStatus{
+					Included: item.State.Zoneids.Included,
+					Excluded: item.State.Zoneids.Excluded,
+				}
 			}
 		}
 	}
@@ -171,9 +172,8 @@ func (s *expState) deleteProvider(logger logger.LogContext, name resources.Objec
 			Key: generated.ObjectKey{Arg0: name.Namespace(), Arg1: name.Name()},
 		}
 		cmd := generated.NewDeleteKeyCommandDNSProviderSpec(spec)
-		if err := s.ddlogProgram.ApplyUpdatesAsTransaction(cmd); err != nil {
-			return reconcile.Failed(logger, errors.Wrap(err, "ApplyUpdatesAsTransaction deleteProvider"))
-		}
+		// TODO also remove AccountResult
+		s.addToDDLogCommandQueue(cmd)
 	}
 	return reconcile.Succeeded(logger)
 }

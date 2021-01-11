@@ -76,3 +76,7 @@ alltests:
 .PHONY: run
 run: build-local
 	@LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) ./dns-controller-manager --identifier martin --controllers=cloudflare-dns --omit-lease
+
+.PHONY: code
+code:
+	@code -n .

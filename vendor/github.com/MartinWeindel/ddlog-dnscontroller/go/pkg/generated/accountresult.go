@@ -59,7 +59,8 @@ func AccountResultFromRecord(record ddlog.Record) (*AccountResult, error) {
 	}
 	arg3, err := 
 	func() ([]Zone, error) {
-		rv, err := rs.At(3).AsVectorSafe()
+		rv0 := rs.At(3)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}

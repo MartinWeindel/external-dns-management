@@ -73,7 +73,8 @@ func EStateFromRecord(record ddlog.Record) (*EState, error) {
 	}
 	arg5, err := 
 	func() ([]string, error) {
-		rv, err := rs.At(5).AsVectorSafe()
+		rv0 := rs.At(5)
+		rv, err := rv0.AsVectorSafe()
 		if err != nil {
 			return nil, err
 		}

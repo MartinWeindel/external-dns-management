@@ -44,5 +44,7 @@ const (
 	OPT_RATELIMITER_BURST   = "ratelimiter.burst"
 
 	CMD_HOSTEDZONE_PREFIX = "hostedzone:"
+	CMD_ACCOUNT_PREFIX    = "account:"
 	CMD_STATISTIC         = "statistic"
+	CMD_DDLOG_UPDATE      = "ddlog_update"
 )
