@@ -136,6 +136,37 @@ func (s *expState) ReconcileZone(logger logger.LogContext, zoneid string) reconc
 		return reconcile.Succeeded(logger)
 	}
 
+	var done DoneHandler
+	for _, change := range s.nextRecordSetChange(zoneid) {
+		var reqs []*ChangeRequest
+		for _, data := range change.Insert {
+			reqs = addChangeRequests(reqs, true, nil, &data, done)
+		}
+		for i := 0; i < len(change.Update); i += 2 {
+			oldData := change.Update[i]
+			newData := change.Update[i+1]
+			if oldData.Domain != newData.Domain {
+				logger.Errorf("update domain mismatch: %s != %s", oldData.Domain, newData.Domain)
+				continue
+			}
+			changedOwner := oldData.Owner != newData.Owner
+			reqs = addChangeRequests(reqs, changedOwner, &oldData, &newData, done)
+		}
+		for _, data := range change.Delete {
+			reqs = addChangeRequests(reqs, true, &data, nil, done)
+		}
+		err := account.ExecuteRequests(logger, zone.zone, state, reqs)
+		if err != nil {
+			logger.Warn(err.Error())
+		}
+	}
+
+	state, err = account.GetZoneState(zone.zone)
+	if err != nil {
+		logger.Warnf("GetZoneState failed: %s", err)
+		return reconcile.Succeeded(logger)
+	}
+
 	ptype := providerTypeToGenerated(account.ProviderType())
 
 	{
@@ -177,93 +208,47 @@ func (s *expState) ReconcileZone(logger logger.LogContext, zoneid string) reconc
 	}
 
 	return reconcile.Succeeded(logger)
-
-	/*
-		delay, hasProviders, req := this.GetZoneReconcilation(logger, zoneid)
-		if req == nil || req.zone == nil {
-			if !hasProviders {
-				return reconcile.Succeeded(logger).Stop()
-			}
-			return reconcile.Failed(logger, fmt.Errorf("zone %s not used anymore -> stop reconciling", zoneid))
-		}
-		logger = this.RefineLogger(logger, req.zone.ProviderType())
-		if delay > 0 {
-			logger.Infof("too early (required delay between two reconcilations: %s) -> skip and reschedule", this.config.Delay)
-			return reconcile.Succeeded(logger).RescheduleAfter(delay)
-		}
-		logger.Infof("precondition fulfilled for zone %s", zoneid)
-		if done, err := this.StartZoneReconcilation(logger, req); done {
-			if err != nil {
-				if _, ok := err.(*perrs.NoSuchHostedZone); ok {
-					for _, provider := range req.providers {
-						// trigger provider reconciliation to update its status
-						_ = this.context.Enqueue(provider.Object())
-					}
-					return reconcile.Succeeded(logger)
-				}
-				logger.Infof("zone reconcilation failed for %s: %s", req.zone.Id(), err)
-				return reconcile.Succeeded(logger).RescheduleAfter(req.zone.RateLimit())
-			}
-			return reconcile.Succeeded(logger)
-		}
-		logger.Infof("reconciling zone %q (%s) already busy and skipped", zoneid, req.zone.Domain())
-		return reconcile.Succeeded(logger).RescheduleAfter(10 * time.Second)
-	*/
 }
 
-/*
-func (this *expState) StartZoneReconcilation(logger logger.LogContext, req *zoneReconciliation) (bool, error) {
-	xxx
-	// TODO
-	if req.deleting {
-		ctxutil.Tick(this.GetContext().GetContext(), controller.DeletionActivity)
+func addChangeRequests(reqs []*ChangeRequest, addMeta bool, old, new *generated.RecordSetData,
+	done DoneHandler) []*ChangeRequest {
+	var oldset, newset, oldmetaset, newmetaset *dns.DNSSet
+	var rtype string
+	if new != nil {
+		rtype, newset, newmetaset = buildDNSSets(*new, addMeta)
 	}
-	if req.zone.TestAndSetBusy() {
-		defer req.zone.Release()
+	if old != nil {
+		rtype, oldset, oldmetaset = buildDNSSets(*old, addMeta)
+	}
 
-		list := make(EntryList, 0, len(req.stale)+len(req.entries))
-		for _, e := range req.entries {
-			list = append(list, e)
-		}
-		for _, e := range req.stale {
-			if req.entries[e.ObjectName()] == nil {
-				list = append(list, e)
-			} else {
-				logger.Errorf("???, duplicate entry in stale and entries")
-			}
-		}
-		logger.Infof("locking %d entries for zone reconcilation", len(list))
-		list.Lock()
-		defer func() {
-			logger.Infof("unlocking %d entries", len(list))
-			list.Unlock()
-			this.triggerStatistic()
-		}()
-		return true, this.reconcileZone(logger, req)
+	var action string
+	if old == nil && new != nil {
+		action = R_CREATE
+	} else if old != nil && new != nil {
+		action = R_UPDATE
+	} else if old != nil && new == nil {
+		action = R_DELETE
 	}
-	return false, nil
+	if action != "" {
+		reqs = append(reqs, NewChangeRequest(action, rtype, oldset, newset, done))
+		if addMeta {
+			reqs = append(reqs, NewChangeRequest(action, dns.RS_META, oldmetaset, newmetaset, done))
+		}
+	}
+	return reqs
 }
 
-func (this *expState) GetZoneReconcilation(logger logger.LogContext, zoneid string) (time.Duration, bool, *expZoneReconciliation) {
-	req := &expZoneReconciliation{}
-
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-
-	hasProviders := this.hasProviders()
-	zone := this.zones[zoneid]
-	if zone == nil {
-		return 0, hasProviders, nil
+func buildDNSSets(data generated.RecordSetData, addMeta bool) (rtype string, set *dns.DNSSet, meta *dns.DNSSet) {
+	rtype = recordTypeFromGenerated(data.Rtype)
+	set = dns.NewDNSSet(data.Domain)
+	set.SetRecordSet(rtype, int64(data.Ttl), data.Records...)
+	if addMeta {
+		meta = dns.NewDNSSet(data.Domain)
+		meta.SetRecordSet(dns.RS_META, 600)
+		meta.SetOwner(data.Owner)
 	}
-	now := time.Now()
-	req.zone = zone
-	if now.Before(zone.next) {
-		return zone.next.Sub(now), hasProviders, req
-	}
-	req.providers = this.getProvidersForZone(zoneid)
-	return 0, hasProviders, req
+	return
 }
-*/
 
 func recordTypeToGenerated(typename string) generated.RecordType {
 	switch typename {
@@ -275,4 +260,16 @@ func recordTypeToGenerated(typename string) generated.RecordType {
 		return &generated.CNAME{}
 	}
 	return nil
+}
+
+func recordTypeFromGenerated(rtype generated.RecordType) string {
+	switch rtype.(type) {
+	case *generated.A:
+		return dns.RS_A
+	case *generated.TXT:
+		return dns.RS_TXT
+	case *generated.CNAME:
+		return dns.RS_CNAME
+	}
+	return ""
 }

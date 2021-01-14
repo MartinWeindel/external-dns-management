@@ -137,6 +137,10 @@ func (s *expState) nextEntryZonesFromQueue(name resources.ObjectName) []*generat
 	return s.outRecordHandler.nextEntryZonesFromQueue(name)
 }
 
+func (s *expState) nextRecordSetChange(zoneid string) []*generated.RecordSetChange {
+	return s.outRecordHandler.nextRecordSetChange(zoneid)
+}
+
 ///////////////////////////////////////////////
 
 type outRecordHandler struct {
@@ -144,6 +148,7 @@ type outRecordHandler struct {
 	providerUpdateQueue  map[resources.ObjectName][]weightedDNSProviderStatus
 	entryUpdateQueue     map[resources.ObjectName][]*generated.DNSEntryStatus
 	entryZoneQueue       map[resources.ObjectName][]*generated.MatchedEntryToZoneInfo
+	recordChangeQueue    map[string][]*generated.RecordSetChange
 	providerZoneChanges  []weightedDNSProviderZone
 	outstandingProviders resources.ObjectNameSet
 	outstandingEntries   resources.ObjectNameSet
@@ -156,6 +161,7 @@ func newOutRecordHandler() outRecordHandler {
 		providerUpdateQueue:  map[resources.ObjectName][]weightedDNSProviderStatus{},
 		entryUpdateQueue:     map[resources.ObjectName][]*generated.DNSEntryStatus{},
 		entryZoneQueue:       map[resources.ObjectName][]*generated.MatchedEntryToZoneInfo{},
+		recordChangeQueue:    map[string][]*generated.RecordSetChange{},
 		outstandingProviders: resources.ObjectNameSet{},
 		outstandingEntries:   resources.ObjectNameSet{},
 		outstandingZones:     utils.StringSet{},
@@ -180,21 +186,28 @@ func (h *outRecordHandler) Handle(tableID ddlog.TableID, r ddlog.Record, weight 
 	if tableID == generated.GetRelTableIDDNSProviderStatus() {
 		o := obj.(*generated.DNSProviderStatus)
 		name := resources.NewObjectName(o.Key.Arg0, o.Key.Arg1)
+		h.outstandingProviders.Add(name)
 		h.providerUpdateQueue[name] = append(h.providerUpdateQueue[name], weightedDNSProviderStatus{item: o, weight: weight})
-	} else if tableID == generated.GetRelTableIDDNSEntryStatus() {
+	} else if tableID == generated.GetRelTableIDDNSEntryStatus() && weight == 1 {
 		o := obj.(*generated.DNSEntryStatus)
 		name := resources.NewObjectName(o.Key.Arg0, o.Key.Arg1)
+		h.outstandingEntries.Add(name)
 		h.entryUpdateQueue[name] = append(h.entryUpdateQueue[name], o)
-	} else if tableID == generated.GetRelTableIDMatchedEntryToZoneInfo() {
+	} else if tableID == generated.GetRelTableIDMatchedEntryToZoneInfo() && weight == 1 {
 		o := obj.(*generated.MatchedEntryToZoneInfo)
 		name := resources.NewObjectName(o.EntryKey.Arg0, o.EntryKey.Arg1)
 		h.entryZoneQueue[name] = append(h.entryZoneQueue[name], o)
 	} else if tableID == generated.GetRelTableIDDNSProviderZone() {
 		o := obj.(*generated.DNSProviderZone)
+		h.outstandingZones.Add(o.Zoneid)
 		h.providerZoneChanges = append(h.providerZoneChanges, weightedDNSProviderZone{item: o, weight: weight})
 	} else if tableID == generated.GetRelTableIDAccountInUse() && weight == 1 {
 		o := obj.(*generated.AccountInUse)
 		h.outstandingAccounts.Add(o.CredentialsHash)
+	} else if tableID == generated.GetRelTableIDRecordSetChange() && weight == 1 {
+		o := obj.(*generated.RecordSetChange)
+		h.outstandingZones.Add(o.Zoneid)
+		h.recordChangeQueue[o.Zoneid] = append(h.recordChangeQueue[o.Zoneid], o)
 	}
 	s, _ := json.MarshalIndent(obj, "", "  ")
 	logger.Infof("ddlog-outrecord: %s[%s] %d: %s\n%s\n", meta.TableName, meta.RecordName, weight, s, r.Dump())
@@ -241,10 +254,21 @@ func (h *outRecordHandler) nextProviderZonesChanges() []weightedDNSProviderZone 
 	return list
 }
 
+func (h *outRecordHandler) nextRecordSetChange(zoneid string) []*generated.RecordSetChange {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	list, ok := h.recordChangeQueue[zoneid]
+	if !ok || len(list) == 0 {
+		return nil
+	}
+	delete(h.recordChangeQueue, zoneid)
+	return list
+}
+
 func (h *outRecordHandler) getOutstandingCount() int {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	return len(h.outstandingProviders) + len(h.outstandingEntries) + len(h.outstandingZones)
+	return len(h.outstandingProviders) + len(h.outstandingEntries) + len(h.outstandingZones) + len(h.outstandingAccounts)
 }
 
 func (h *outRecordHandler) nextOutstandingProviders() []resources.ObjectName {

@@ -109,6 +109,7 @@ func (s *expState) UpdateEntry(logger logger.LogContext, obj *dnsutils.DNSEntryO
 			ttl := int64(item.State.Ttl)
 			status.TTL = &ttl
 			status.Zone = &item.State.Zoneid
+			status.Targets = item.State.Records
 			ptype := providerTypeFromGenerated(item.State.Ptype)
 			status.ProviderType = &ptype
 		}
