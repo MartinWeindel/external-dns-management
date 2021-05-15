@@ -9,14 +9,8 @@ import (
 
 // input relation DNSProviderSpec [DNSProviderSpec]
 
-var (
-	relTableIDDNSProviderSpec ddlog.TableID = ddlog.GetTableID("DNSProviderSpec")
-)
-
 func init() {
-	relTableIDDNSProviderSpec = ddlog.GetTableID("DNSProviderSpec")
 	meta := &TableMetaData{
-		TableID: relTableIDDNSProviderSpec,
 		TableName: "DNSProviderSpec", 
 		RecordName: "DNSProviderSpec",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,26 +18,30 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDDNSProviderSpec, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
+func (pd *ProgData) NewInsertCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
 	rec := NewRecordDNSProviderSpec(obj)
-	return ddlog.NewInsertCommand(relTableIDDNSProviderSpec, rec)
+	tableID := pd.LookupTableID("DNSProviderSpec")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
 	rec := NewRecordDNSProviderSpec(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSProviderSpec, rec)
+	tableID := pd.LookupTableID("DNSProviderSpec")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
 	rec := NewRecordDNSProviderSpec(obj)
-	return ddlog.NewDeleteValCommand(relTableIDDNSProviderSpec, rec)
+	tableID := pd.LookupTableID("DNSProviderSpec")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
-func NewDeleteKeyCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
+func (pd *ProgData) NewDeleteKeyCommandDNSProviderSpec(obj *DNSProviderSpec) ddlog.Command {
 	rec := NewKeyRecordDNSProviderSpec(obj)
-	return ddlog.NewDeleteKeyCommand(relTableIDDNSProviderSpec, rec)
+	tableID := pd.LookupTableID("DNSProviderSpec")
+	return ddlog.NewDeleteKeyCommand(tableID, rec)
 }
 
 
@@ -53,6 +51,6 @@ func NewKeyRecordDNSProviderSpec(obj *DNSProviderSpec) ddlog.Record {
     }()
 }
 
-func GetRelTableIDDNSProviderSpec() ddlog.TableID {
-	return relTableIDDNSProviderSpec
+func (pd *ProgData) GetRelTableIDDNSProviderSpec() ddlog.TableID {
+	return pd.LookupTableID("DNSProviderSpec")
 }

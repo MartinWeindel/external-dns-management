@@ -74,7 +74,7 @@ func (s *expState) UpdateEntry(logger logger.LogContext, obj *dnsutils.DNSEntryO
 		gspec.Spec.Records = spec.Text
 	}
 	logger.Infof("Inserting dnsentryspec")
-	cmd := generated.NewInsertOrUpdateCommandDNSEntrySpec(gspec)
+	cmd := s.progData.NewInsertOrUpdateCommandDNSEntrySpec(gspec)
 	s.addToDDLogCommandQueue(cmd)
 	list := s.nextEntryStatusesFromQueue(obj.ObjectName())
 	for _, item := range list {
@@ -146,7 +146,7 @@ func (s *expState) deleteEntry(logger logger.LogContext, name resources.ObjectNa
 		spec := &generated.DNSEntrySpec{
 			Key: generated.ObjectKey{Arg0: name.Namespace(), Arg1: name.Name()},
 		}
-		cmd := generated.NewDeleteKeyCommandDNSEntrySpec(spec)
+		cmd := s.progData.NewDeleteKeyCommandDNSEntrySpec(spec)
 		s.addToDDLogCommandQueue(cmd)
 	}
 	return reconcile.Succeeded(logger)

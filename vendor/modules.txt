@@ -312,7 +312,7 @@ github.com/sirupsen/logrus
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/vmware/differential-datalog/go v0.0.0-20200901213207-0a92c0bb3c2d
+# github.com/vmware/differential-datalog/go v0.0.0-20210511215531-f86281303f9c
 ## explicit
 github.com/vmware/differential-datalog/go/pkg/ddlog
 github.com/vmware/differential-datalog/go/pkg/uint128

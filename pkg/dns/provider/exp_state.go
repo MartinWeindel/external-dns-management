@@ -41,6 +41,7 @@ type expState struct {
 
 	numDDlogWorkers   uint
 	ddlogProgram      *ddlog.Program
+	progData          *generated.ProgData
 	ddlogUpdateActive int32
 	outRecordHandler  outRecordHandler
 }
@@ -60,7 +61,6 @@ func newExpState(context Context, classes *controller.Classes, config Config) *e
 		knownEntries:      resources.ObjectNameSet{},
 		knownOwners:       resources.ObjectNameSet{},
 		ddlogCommandQueue: []ddlog.Command{},
-		outRecordHandler:  newOutRecordHandler(),
 	}
 }
 
@@ -80,9 +80,10 @@ func (s *expState) Setup() error {
 	if err != nil {
 		return err
 	}
+	s.progData = s.outRecordHandler.GetProgData(s.ddlogProgram)
 
 	owner := &generated.DNSOwner{Name: "commandline:identifier", OwnerId: s.config.Ident, Active: true}
-	cmd := generated.NewInsertOrUpdateCommandDNSOwner(owner)
+	cmd := s.progData.NewInsertOrUpdateCommandDNSOwner(owner)
 	s.addToDDLogCommandQueue(cmd)
 
 	s.setupFor(&api.DNSProvider{}, "providers", func(e resources.Object) {

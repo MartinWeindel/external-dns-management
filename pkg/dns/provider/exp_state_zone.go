@@ -179,7 +179,7 @@ func (s *expState) ReconcileZone(logger logger.LogContext, zoneid string) reconc
 			Ttl:     uint32(0),
 			Records: []string{},
 		}
-		cmd := generated.NewInsertOrUpdateCommandRecordSet(rs)
+		cmd := s.progData.NewInsertOrUpdateCommandRecordSet(rs)
 		s.addToDDLogCommandQueue(cmd)
 	}
 
@@ -201,7 +201,8 @@ func (s *expState) ReconcileZone(logger logger.LogContext, zoneid string) reconc
 					Ttl:     uint32(recordset.TTL),
 					Records: records,
 				}
-				cmd := generated.NewInsertOrUpdateCommandRecordSet(rs)
+				logger.Infof("###### RecordSet - zone:%s,d:%s,%s,%d,%v", zoneid, dnsName, rtype.Name(), recordset.TTL, records)
+				cmd := s.progData.NewInsertOrUpdateCommandRecordSet(rs)
 				s.addToDDLogCommandQueue(cmd)
 			}
 		}

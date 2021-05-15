@@ -9,14 +9,8 @@ import (
 
 // input relation DNSEntrySpec [DNSEntrySpec]
 
-var (
-	relTableIDDNSEntrySpec ddlog.TableID = ddlog.GetTableID("DNSEntrySpec")
-)
-
 func init() {
-	relTableIDDNSEntrySpec = ddlog.GetTableID("DNSEntrySpec")
 	meta := &TableMetaData{
-		TableID: relTableIDDNSEntrySpec,
 		TableName: "DNSEntrySpec", 
 		RecordName: "DNSEntrySpec",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,26 +18,30 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDDNSEntrySpec, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
+func (pd *ProgData) NewInsertCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
 	rec := NewRecordDNSEntrySpec(obj)
-	return ddlog.NewInsertCommand(relTableIDDNSEntrySpec, rec)
+	tableID := pd.LookupTableID("DNSEntrySpec")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
 	rec := NewRecordDNSEntrySpec(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSEntrySpec, rec)
+	tableID := pd.LookupTableID("DNSEntrySpec")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
 	rec := NewRecordDNSEntrySpec(obj)
-	return ddlog.NewDeleteValCommand(relTableIDDNSEntrySpec, rec)
+	tableID := pd.LookupTableID("DNSEntrySpec")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
-func NewDeleteKeyCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
+func (pd *ProgData) NewDeleteKeyCommandDNSEntrySpec(obj *DNSEntrySpec) ddlog.Command {
 	rec := NewKeyRecordDNSEntrySpec(obj)
-	return ddlog.NewDeleteKeyCommand(relTableIDDNSEntrySpec, rec)
+	tableID := pd.LookupTableID("DNSEntrySpec")
+	return ddlog.NewDeleteKeyCommand(tableID, rec)
 }
 
 
@@ -53,6 +51,6 @@ func NewKeyRecordDNSEntrySpec(obj *DNSEntrySpec) ddlog.Record {
     }()
 }
 
-func GetRelTableIDDNSEntrySpec() ddlog.TableID {
-	return relTableIDDNSEntrySpec
+func (pd *ProgData) GetRelTableIDDNSEntrySpec() ddlog.TableID {
+	return pd.LookupTableID("DNSEntrySpec")
 }

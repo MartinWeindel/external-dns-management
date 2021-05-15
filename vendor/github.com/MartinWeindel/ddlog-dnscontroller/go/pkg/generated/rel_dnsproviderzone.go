@@ -9,14 +9,8 @@ import (
 
 // output relation DNSProviderZone [DNSProviderZone]
 
-var (
-	relTableIDDNSProviderZone ddlog.TableID = ddlog.GetTableID("DNSProviderZone")
-)
-
 func init() {
-	relTableIDDNSProviderZone = ddlog.GetTableID("DNSProviderZone")
 	meta := &TableMetaData{
-		TableID: relTableIDDNSProviderZone,
 		TableName: "DNSProviderZone", 
 		RecordName: "DNSProviderZone",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,24 +18,27 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDDNSProviderZone, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandDNSProviderZone(obj *DNSProviderZone) ddlog.Command {
+func (pd *ProgData) NewInsertCommandDNSProviderZone(obj *DNSProviderZone) ddlog.Command {
 	rec := NewRecordDNSProviderZone(obj)
-	return ddlog.NewInsertCommand(relTableIDDNSProviderZone, rec)
+	tableID := pd.LookupTableID("DNSProviderZone")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandDNSProviderZone(obj *DNSProviderZone) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandDNSProviderZone(obj *DNSProviderZone) ddlog.Command {
 	rec := NewRecordDNSProviderZone(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSProviderZone, rec)
+	tableID := pd.LookupTableID("DNSProviderZone")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandDNSProviderZone(obj *DNSProviderZone) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandDNSProviderZone(obj *DNSProviderZone) ddlog.Command {
 	rec := NewRecordDNSProviderZone(obj)
-	return ddlog.NewDeleteValCommand(relTableIDDNSProviderZone, rec)
+	tableID := pd.LookupTableID("DNSProviderZone")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
 
-func GetRelTableIDDNSProviderZone() ddlog.TableID {
-	return relTableIDDNSProviderZone
+func (pd *ProgData) GetRelTableIDDNSProviderZone() ddlog.TableID {
+	return pd.LookupTableID("DNSProviderZone")
 }

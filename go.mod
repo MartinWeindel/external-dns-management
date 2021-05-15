@@ -1,6 +1,6 @@
 module github.com/gardener/external-dns-management
 
-go 1.14
+go 1.16
 
 require (
 	github.com/Azure/azure-sdk-for-go v39.0.0+incompatible
@@ -23,7 +23,7 @@ require (
 	github.com/onsi/gomega v1.10.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.0.0
-	github.com/vmware/differential-datalog/go v0.0.0-20200901213207-0a92c0bb3c2d
+	github.com/vmware/differential-datalog/go v0.0.0-20210511215531-f86281303f9c // v0.40.2
 	go.uber.org/atomic v1.4.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45

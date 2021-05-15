@@ -145,6 +145,7 @@ func (s *expState) nextRecordSetChange(zoneid string) []*generated.RecordSetChan
 
 type outRecordHandler struct {
 	lock                 sync.Mutex
+	progDatas            map[*ddlog.Program]*generated.ProgData
 	providerUpdateQueue  map[resources.ObjectName][]weightedDNSProviderStatus
 	entryUpdateQueue     map[resources.ObjectName][]*generated.DNSEntryStatus
 	entryZoneQueue       map[resources.ObjectName][]*generated.MatchedEntryToZoneInfo
@@ -158,6 +159,7 @@ type outRecordHandler struct {
 
 func newOutRecordHandler() outRecordHandler {
 	return outRecordHandler{
+		progDatas:            map[*ddlog.Program]*generated.ProgData{},
 		providerUpdateQueue:  map[resources.ObjectName][]weightedDNSProviderStatus{},
 		entryUpdateQueue:     map[resources.ObjectName][]*generated.DNSEntryStatus{},
 		entryZoneQueue:       map[resources.ObjectName][]*generated.MatchedEntryToZoneInfo{},
@@ -169,11 +171,29 @@ func newOutRecordHandler() outRecordHandler {
 	}
 }
 
-func (h *outRecordHandler) Handle(tableID ddlog.TableID, r ddlog.Record, weight int64) {
+func (h *outRecordHandler) GetProgData(prog *ddlog.Program) *generated.ProgData {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
-	meta, err := generated.LookupTableMetaData(tableID)
+	progData := h.progDatas[prog]
+	if progData == nil {
+		progData = generated.NewProgData(prog)
+		h.progDatas[prog] = progData
+	}
+	return progData
+}
+
+func (h *outRecordHandler) Handle(prog *ddlog.Program, tableID ddlog.TableID, r ddlog.Record, weight int64) {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+
+	progData := h.progDatas[prog]
+	if progData == nil {
+		progData = generated.NewProgData(prog)
+		h.progDatas[prog] = progData
+	}
+
+	meta, err := progData.LookupTableMetaData(tableID)
 	if err != nil {
 		logger.Errorf("ddlog-outrecord: lookup failed tableID=%s weight=%d err=%s dump%=s", tableID, weight, err, r.Dump())
 		return
@@ -183,28 +203,28 @@ func (h *outRecordHandler) Handle(tableID ddlog.TableID, r ddlog.Record, weight 
 		logger.Errorf("ddlog-outrecord: unmarshal failed tableID=%s weight=%d err=%s dump%=s", tableID, weight, err, r.Dump())
 		return
 	}
-	if tableID == generated.GetRelTableIDDNSProviderStatus() {
+	if tableID == progData.GetRelTableIDDNSProviderStatus() {
 		o := obj.(*generated.DNSProviderStatus)
 		name := resources.NewObjectName(o.Key.Arg0, o.Key.Arg1)
 		h.outstandingProviders.Add(name)
 		h.providerUpdateQueue[name] = append(h.providerUpdateQueue[name], weightedDNSProviderStatus{item: o, weight: weight})
-	} else if tableID == generated.GetRelTableIDDNSEntryStatus() && weight == 1 {
+	} else if tableID == progData.GetRelTableIDDNSEntryStatus() && weight == 1 {
 		o := obj.(*generated.DNSEntryStatus)
 		name := resources.NewObjectName(o.Key.Arg0, o.Key.Arg1)
 		h.outstandingEntries.Add(name)
 		h.entryUpdateQueue[name] = append(h.entryUpdateQueue[name], o)
-	} else if tableID == generated.GetRelTableIDMatchedEntryToZoneInfo() && weight == 1 {
+	} else if tableID == progData.GetRelTableIDMatchedEntryToZoneInfo() && weight == 1 {
 		o := obj.(*generated.MatchedEntryToZoneInfo)
 		name := resources.NewObjectName(o.EntryKey.Arg0, o.EntryKey.Arg1)
 		h.entryZoneQueue[name] = append(h.entryZoneQueue[name], o)
-	} else if tableID == generated.GetRelTableIDDNSProviderZone() {
+	} else if tableID == progData.GetRelTableIDDNSProviderZone() {
 		o := obj.(*generated.DNSProviderZone)
 		h.outstandingZones.Add(o.Zoneid)
 		h.providerZoneChanges = append(h.providerZoneChanges, weightedDNSProviderZone{item: o, weight: weight})
-	} else if tableID == generated.GetRelTableIDAccountInUse() && weight == 1 {
+	} else if tableID == progData.GetRelTableIDAccountInUse() && weight == 1 {
 		o := obj.(*generated.AccountInUse)
 		h.outstandingAccounts.Add(o.CredentialsHash)
-	} else if tableID == generated.GetRelTableIDRecordSetChange() && weight == 1 {
+	} else if tableID == progData.GetRelTableIDRecordSetChange() && weight == 1 {
 		o := obj.(*generated.RecordSetChange)
 		h.outstandingZones.Add(o.Zoneid)
 		h.recordChangeQueue[o.Zoneid] = append(h.recordChangeQueue[o.Zoneid], o)

@@ -9,14 +9,8 @@ import (
 
 // output relation DNSProviderStatus [DNSProviderStatus]
 
-var (
-	relTableIDDNSProviderStatus ddlog.TableID = ddlog.GetTableID("DNSProviderStatus")
-)
-
 func init() {
-	relTableIDDNSProviderStatus = ddlog.GetTableID("DNSProviderStatus")
 	meta := &TableMetaData{
-		TableID: relTableIDDNSProviderStatus,
 		TableName: "DNSProviderStatus", 
 		RecordName: "DNSProviderStatus",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,24 +18,27 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDDNSProviderStatus, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
+func (pd *ProgData) NewInsertCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
 	rec := NewRecordDNSProviderStatus(obj)
-	return ddlog.NewInsertCommand(relTableIDDNSProviderStatus, rec)
+	tableID := pd.LookupTableID("DNSProviderStatus")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
 	rec := NewRecordDNSProviderStatus(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSProviderStatus, rec)
+	tableID := pd.LookupTableID("DNSProviderStatus")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandDNSProviderStatus(obj *DNSProviderStatus) ddlog.Command {
 	rec := NewRecordDNSProviderStatus(obj)
-	return ddlog.NewDeleteValCommand(relTableIDDNSProviderStatus, rec)
+	tableID := pd.LookupTableID("DNSProviderStatus")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
 
-func GetRelTableIDDNSProviderStatus() ddlog.TableID {
-	return relTableIDDNSProviderStatus
+func (pd *ProgData) GetRelTableIDDNSProviderStatus() ddlog.TableID {
+	return pd.LookupTableID("DNSProviderStatus")
 }

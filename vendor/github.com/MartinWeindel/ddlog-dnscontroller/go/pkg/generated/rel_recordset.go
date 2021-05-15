@@ -9,14 +9,8 @@ import (
 
 // input relation RecordSet [RecordSet]
 
-var (
-	relTableIDRecordSet ddlog.TableID = ddlog.GetTableID("RecordSet")
-)
-
 func init() {
-	relTableIDRecordSet = ddlog.GetTableID("RecordSet")
 	meta := &TableMetaData{
-		TableID: relTableIDRecordSet,
 		TableName: "RecordSet", 
 		RecordName: "RecordSet",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,26 +18,30 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDRecordSet, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandRecordSet(obj *RecordSet) ddlog.Command {
+func (pd *ProgData) NewInsertCommandRecordSet(obj *RecordSet) ddlog.Command {
 	rec := NewRecordRecordSet(obj)
-	return ddlog.NewInsertCommand(relTableIDRecordSet, rec)
+	tableID := pd.LookupTableID("RecordSet")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandRecordSet(obj *RecordSet) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandRecordSet(obj *RecordSet) ddlog.Command {
 	rec := NewRecordRecordSet(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDRecordSet, rec)
+	tableID := pd.LookupTableID("RecordSet")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandRecordSet(obj *RecordSet) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandRecordSet(obj *RecordSet) ddlog.Command {
 	rec := NewRecordRecordSet(obj)
-	return ddlog.NewDeleteValCommand(relTableIDRecordSet, rec)
+	tableID := pd.LookupTableID("RecordSet")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
-func NewDeleteKeyCommandRecordSet(obj *RecordSet) ddlog.Command {
+func (pd *ProgData) NewDeleteKeyCommandRecordSet(obj *RecordSet) ddlog.Command {
 	rec := NewKeyRecordRecordSet(obj)
-	return ddlog.NewDeleteKeyCommand(relTableIDRecordSet, rec)
+	tableID := pd.LookupTableID("RecordSet")
+	return ddlog.NewDeleteKeyCommand(tableID, rec)
 }
 
 
@@ -66,6 +64,6 @@ func NewKeyRecordRecordSet(obj *RecordSet) ddlog.Record {
 	return ddlog.NewRecordTuple(arg0,arg1,arg2,arg3,arg4)
 }
 
-func GetRelTableIDRecordSet() ddlog.TableID {
-	return relTableIDRecordSet
+func (pd *ProgData) GetRelTableIDRecordSet() ddlog.TableID {
+	return pd.LookupTableID("RecordSet")
 }

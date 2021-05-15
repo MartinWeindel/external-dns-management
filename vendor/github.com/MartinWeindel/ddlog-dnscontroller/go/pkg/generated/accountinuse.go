@@ -9,33 +9,58 @@ import (
 	"github.com/vmware/differential-datalog/go/pkg/ddlog"
 )
 
-type UnmarshalRecord func(record ddlog.Record) (interface{}, error)
-
-type TableMetaData struct {
-	TableID ddlog.TableID
-	TableName string
-	RecordName string
-	Unmarshaller UnmarshalRecord
-}
-
-var tableMetaDataRegistry map[ddlog.TableID]*TableMetaData
-
 // TODO report/fix bug in record.go
 func init() {
-	tableMetaDataRegistry = map[ddlog.TableID]*TableMetaData{}
-
 	ddlog.StdSomeConstructor = ddlog.NewCString("ddlog_std::Some")
 	ddlog.StdNoneConstructor = ddlog.NewCString("ddlog_std::None")
 	ddlog.StdLeftConstructor = ddlog.NewCString("ddlog_std::Left")
 	ddlog.StdRightConstructor = ddlog.NewCString("ddlog_std::Right")
 }
 
-func registerTableMetaData(tableID ddlog.TableID, meta *TableMetaData) {
-	tableMetaDataRegistry[tableID] = meta
+type UnmarshalRecord func(record ddlog.Record) (interface{}, error)
+
+type TableMetaData struct {
+	TableID      ddlog.TableID
+	TableName    string
+	RecordName   string
+	Unmarshaller UnmarshalRecord
 }
 
-func LookupTableMetaData(tableID ddlog.TableID) (*TableMetaData, error) {
-	meta := tableMetaDataRegistry[tableID]
+var progDataTableMetaDataRegistry []*TableMetaData
+
+type ProgData struct {
+	prog          *ddlog.Program
+	tableToID     map[string]ddlog.TableID
+	tableMetaData map[ddlog.TableID]*TableMetaData
+}
+
+func NewProgData(prog *ddlog.Program) *ProgData {
+	pd := &ProgData{
+		prog:          prog,
+		tableToID:     map[string]ddlog.TableID{},
+	    tableMetaData: map[ddlog.TableID]*TableMetaData{},
+	}
+	for _, meta := range progDataTableMetaDataRegistry {
+		meta.TableID = prog.GetTableID(meta.TableName)
+		pd.tableToID[meta.TableName] = meta.TableID
+		pd.tableMetaData[meta.TableID] = meta
+	}
+	return pd
+}
+
+func registerTableMetaData(meta *TableMetaData) {
+	progDataTableMetaDataRegistry = append(progDataTableMetaDataRegistry, meta)
+}
+
+func (pd *ProgData) LookupTableID(tableName string) ddlog.TableID {
+	if tableID, ok := pd.tableToID[tableName]; ok {
+		return tableID
+	}
+	panic(fmt.Sprintf("no tableID for %s", tableName))
+}
+
+func (pd *ProgData) LookupTableMetaData(tableID ddlog.TableID) (*TableMetaData, error) {
+	meta := pd.tableMetaData[tableID]
 	if meta == nil {
 		return nil, fmt.Errorf("tableID %d not found", tableID)
 	}

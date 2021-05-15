@@ -9,14 +9,8 @@ import (
 
 // output relation AllDNSOwners [AllDNSOwners]
 
-var (
-	relTableIDAllDNSOwners ddlog.TableID = ddlog.GetTableID("AllDNSOwners")
-)
-
 func init() {
-	relTableIDAllDNSOwners = ddlog.GetTableID("AllDNSOwners")
 	meta := &TableMetaData{
-		TableID: relTableIDAllDNSOwners,
 		TableName: "AllDNSOwners", 
 		RecordName: "AllDNSOwners",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,24 +18,27 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDAllDNSOwners, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandAllDNSOwners(obj *AllDNSOwners) ddlog.Command {
+func (pd *ProgData) NewInsertCommandAllDNSOwners(obj *AllDNSOwners) ddlog.Command {
 	rec := NewRecordAllDNSOwners(obj)
-	return ddlog.NewInsertCommand(relTableIDAllDNSOwners, rec)
+	tableID := pd.LookupTableID("AllDNSOwners")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandAllDNSOwners(obj *AllDNSOwners) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandAllDNSOwners(obj *AllDNSOwners) ddlog.Command {
 	rec := NewRecordAllDNSOwners(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDAllDNSOwners, rec)
+	tableID := pd.LookupTableID("AllDNSOwners")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandAllDNSOwners(obj *AllDNSOwners) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandAllDNSOwners(obj *AllDNSOwners) ddlog.Command {
 	rec := NewRecordAllDNSOwners(obj)
-	return ddlog.NewDeleteValCommand(relTableIDAllDNSOwners, rec)
+	tableID := pd.LookupTableID("AllDNSOwners")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
 
-func GetRelTableIDAllDNSOwners() ddlog.TableID {
-	return relTableIDAllDNSOwners
+func (pd *ProgData) GetRelTableIDAllDNSOwners() ddlog.TableID {
+	return pd.LookupTableID("AllDNSOwners")
 }

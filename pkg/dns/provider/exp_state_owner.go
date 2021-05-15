@@ -39,7 +39,7 @@ func (s *expState) UpdateOwner(logger logger.LogContext, obj *dnsutils.DNSOwnerO
 	}
 	owner := &generated.DNSOwner{Name: obj.GetName(), OwnerId: spec.OwnerId, Active: active}
 	logger.Infof("Inserting dnsowner")
-	cmd := generated.NewInsertOrUpdateCommandDNSOwner(owner)
+	cmd := s.progData.NewInsertOrUpdateCommandDNSOwner(owner)
 	s.addToDDLogCommandQueue(cmd)
 	return reconcile.Succeeded(logger)
 }
@@ -51,7 +51,7 @@ func (s *expState) OwnerDeleted(logger logger.LogContext, key resources.ObjectKe
 func (s *expState) deleteOwner(logger logger.LogContext, name resources.ObjectName) reconcile.Status {
 	if s.removeKnownOwner(name) {
 		pk := &generated.DNSOwner{Name: name.Name()}
-		cmd := generated.NewDeleteKeyCommandDNSOwner(pk)
+		cmd := s.progData.NewDeleteKeyCommandDNSOwner(pk)
 		s.addToDDLogCommandQueue(cmd)
 
 	}

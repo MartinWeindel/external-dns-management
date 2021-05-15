@@ -9,14 +9,8 @@ import (
 
 // output relation DNSEntryStatus [DNSEntryStatus]
 
-var (
-	relTableIDDNSEntryStatus ddlog.TableID = ddlog.GetTableID("DNSEntryStatus")
-)
-
 func init() {
-	relTableIDDNSEntryStatus = ddlog.GetTableID("DNSEntryStatus")
 	meta := &TableMetaData{
-		TableID: relTableIDDNSEntryStatus,
 		TableName: "DNSEntryStatus", 
 		RecordName: "DNSEntryStatus",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,24 +18,27 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDDNSEntryStatus, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
+func (pd *ProgData) NewInsertCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
 	rec := NewRecordDNSEntryStatus(obj)
-	return ddlog.NewInsertCommand(relTableIDDNSEntryStatus, rec)
+	tableID := pd.LookupTableID("DNSEntryStatus")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
 	rec := NewRecordDNSEntryStatus(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSEntryStatus, rec)
+	tableID := pd.LookupTableID("DNSEntryStatus")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandDNSEntryStatus(obj *DNSEntryStatus) ddlog.Command {
 	rec := NewRecordDNSEntryStatus(obj)
-	return ddlog.NewDeleteValCommand(relTableIDDNSEntryStatus, rec)
+	tableID := pd.LookupTableID("DNSEntryStatus")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
 
-func GetRelTableIDDNSEntryStatus() ddlog.TableID {
-	return relTableIDDNSEntryStatus
+func (pd *ProgData) GetRelTableIDDNSEntryStatus() ddlog.TableID {
+	return pd.LookupTableID("DNSEntryStatus")
 }

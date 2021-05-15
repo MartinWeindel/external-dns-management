@@ -9,14 +9,8 @@ import (
 
 // output relation AccountInUse [AccountInUse]
 
-var (
-	relTableIDAccountInUse ddlog.TableID = ddlog.GetTableID("AccountInUse")
-)
-
 func init() {
-	relTableIDAccountInUse = ddlog.GetTableID("AccountInUse")
 	meta := &TableMetaData{
-		TableID: relTableIDAccountInUse,
 		TableName: "AccountInUse", 
 		RecordName: "AccountInUse",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,24 +18,27 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDAccountInUse, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandAccountInUse(obj *AccountInUse) ddlog.Command {
+func (pd *ProgData) NewInsertCommandAccountInUse(obj *AccountInUse) ddlog.Command {
 	rec := NewRecordAccountInUse(obj)
-	return ddlog.NewInsertCommand(relTableIDAccountInUse, rec)
+	tableID := pd.LookupTableID("AccountInUse")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandAccountInUse(obj *AccountInUse) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandAccountInUse(obj *AccountInUse) ddlog.Command {
 	rec := NewRecordAccountInUse(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDAccountInUse, rec)
+	tableID := pd.LookupTableID("AccountInUse")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandAccountInUse(obj *AccountInUse) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandAccountInUse(obj *AccountInUse) ddlog.Command {
 	rec := NewRecordAccountInUse(obj)
-	return ddlog.NewDeleteValCommand(relTableIDAccountInUse, rec)
+	tableID := pd.LookupTableID("AccountInUse")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
 
-func GetRelTableIDAccountInUse() ddlog.TableID {
-	return relTableIDAccountInUse
+func (pd *ProgData) GetRelTableIDAccountInUse() ddlog.TableID {
+	return pd.LookupTableID("AccountInUse")
 }

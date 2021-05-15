@@ -9,14 +9,8 @@ import (
 
 // output relation RecordSetChange [RecordSetChange]
 
-var (
-	relTableIDRecordSetChange ddlog.TableID = ddlog.GetTableID("RecordSetChange")
-)
-
 func init() {
-	relTableIDRecordSetChange = ddlog.GetTableID("RecordSetChange")
 	meta := &TableMetaData{
-		TableID: relTableIDRecordSetChange,
 		TableName: "RecordSetChange", 
 		RecordName: "RecordSetChange",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,24 +18,27 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDRecordSetChange, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandRecordSetChange(obj *RecordSetChange) ddlog.Command {
+func (pd *ProgData) NewInsertCommandRecordSetChange(obj *RecordSetChange) ddlog.Command {
 	rec := NewRecordRecordSetChange(obj)
-	return ddlog.NewInsertCommand(relTableIDRecordSetChange, rec)
+	tableID := pd.LookupTableID("RecordSetChange")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandRecordSetChange(obj *RecordSetChange) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandRecordSetChange(obj *RecordSetChange) ddlog.Command {
 	rec := NewRecordRecordSetChange(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDRecordSetChange, rec)
+	tableID := pd.LookupTableID("RecordSetChange")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandRecordSetChange(obj *RecordSetChange) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandRecordSetChange(obj *RecordSetChange) ddlog.Command {
 	rec := NewRecordRecordSetChange(obj)
-	return ddlog.NewDeleteValCommand(relTableIDRecordSetChange, rec)
+	tableID := pd.LookupTableID("RecordSetChange")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
 
-func GetRelTableIDRecordSetChange() ddlog.TableID {
-	return relTableIDRecordSetChange
+func (pd *ProgData) GetRelTableIDRecordSetChange() ddlog.TableID {
+	return pd.LookupTableID("RecordSetChange")
 }

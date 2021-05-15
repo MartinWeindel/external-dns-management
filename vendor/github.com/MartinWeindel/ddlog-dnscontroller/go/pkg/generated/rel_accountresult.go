@@ -9,14 +9,8 @@ import (
 
 // input relation AccountResult [AccountResult]
 
-var (
-	relTableIDAccountResult ddlog.TableID = ddlog.GetTableID("AccountResult")
-)
-
 func init() {
-	relTableIDAccountResult = ddlog.GetTableID("AccountResult")
 	meta := &TableMetaData{
-		TableID: relTableIDAccountResult,
 		TableName: "AccountResult", 
 		RecordName: "AccountResult",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,26 +18,30 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDAccountResult, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandAccountResult(obj *AccountResult) ddlog.Command {
+func (pd *ProgData) NewInsertCommandAccountResult(obj *AccountResult) ddlog.Command {
 	rec := NewRecordAccountResult(obj)
-	return ddlog.NewInsertCommand(relTableIDAccountResult, rec)
+	tableID := pd.LookupTableID("AccountResult")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandAccountResult(obj *AccountResult) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandAccountResult(obj *AccountResult) ddlog.Command {
 	rec := NewRecordAccountResult(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDAccountResult, rec)
+	tableID := pd.LookupTableID("AccountResult")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandAccountResult(obj *AccountResult) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandAccountResult(obj *AccountResult) ddlog.Command {
 	rec := NewRecordAccountResult(obj)
-	return ddlog.NewDeleteValCommand(relTableIDAccountResult, rec)
+	tableID := pd.LookupTableID("AccountResult")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
-func NewDeleteKeyCommandAccountResult(obj *AccountResult) ddlog.Command {
+func (pd *ProgData) NewDeleteKeyCommandAccountResult(obj *AccountResult) ddlog.Command {
 	rec := NewKeyRecordAccountResult(obj)
-	return ddlog.NewDeleteKeyCommand(relTableIDAccountResult, rec)
+	tableID := pd.LookupTableID("AccountResult")
+	return ddlog.NewDeleteKeyCommand(tableID, rec)
 }
 
 
@@ -53,6 +51,6 @@ func NewKeyRecordAccountResult(obj *AccountResult) ddlog.Record {
     }()
 }
 
-func GetRelTableIDAccountResult() ddlog.TableID {
-	return relTableIDAccountResult
+func (pd *ProgData) GetRelTableIDAccountResult() ddlog.TableID {
+	return pd.LookupTableID("AccountResult")
 }

@@ -9,14 +9,8 @@ import (
 
 // input relation DNSOwner [DNSOwner]
 
-var (
-	relTableIDDNSOwner ddlog.TableID = ddlog.GetTableID("DNSOwner")
-)
-
 func init() {
-	relTableIDDNSOwner = ddlog.GetTableID("DNSOwner")
 	meta := &TableMetaData{
-		TableID: relTableIDDNSOwner,
 		TableName: "DNSOwner", 
 		RecordName: "DNSOwner",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,26 +18,30 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDDNSOwner, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandDNSOwner(obj *DNSOwner) ddlog.Command {
+func (pd *ProgData) NewInsertCommandDNSOwner(obj *DNSOwner) ddlog.Command {
 	rec := NewRecordDNSOwner(obj)
-	return ddlog.NewInsertCommand(relTableIDDNSOwner, rec)
+	tableID := pd.LookupTableID("DNSOwner")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandDNSOwner(obj *DNSOwner) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandDNSOwner(obj *DNSOwner) ddlog.Command {
 	rec := NewRecordDNSOwner(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDDNSOwner, rec)
+	tableID := pd.LookupTableID("DNSOwner")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandDNSOwner(obj *DNSOwner) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandDNSOwner(obj *DNSOwner) ddlog.Command {
 	rec := NewRecordDNSOwner(obj)
-	return ddlog.NewDeleteValCommand(relTableIDDNSOwner, rec)
+	tableID := pd.LookupTableID("DNSOwner")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
-func NewDeleteKeyCommandDNSOwner(obj *DNSOwner) ddlog.Command {
+func (pd *ProgData) NewDeleteKeyCommandDNSOwner(obj *DNSOwner) ddlog.Command {
 	rec := NewKeyRecordDNSOwner(obj)
-	return ddlog.NewDeleteKeyCommand(relTableIDDNSOwner, rec)
+	tableID := pd.LookupTableID("DNSOwner")
+	return ddlog.NewDeleteKeyCommand(tableID, rec)
 }
 
 
@@ -53,6 +51,6 @@ func NewKeyRecordDNSOwner(obj *DNSOwner) ddlog.Record {
     }()
 }
 
-func GetRelTableIDDNSOwner() ddlog.TableID {
-	return relTableIDDNSOwner
+func (pd *ProgData) GetRelTableIDDNSOwner() ddlog.TableID {
+	return pd.LookupTableID("DNSOwner")
 }

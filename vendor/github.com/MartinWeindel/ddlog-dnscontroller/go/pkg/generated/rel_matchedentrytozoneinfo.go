@@ -9,14 +9,8 @@ import (
 
 // output relation MatchedEntryToZoneInfo [MatchedEntryToZoneInfo]
 
-var (
-	relTableIDMatchedEntryToZoneInfo ddlog.TableID = ddlog.GetTableID("MatchedEntryToZoneInfo")
-)
-
 func init() {
-	relTableIDMatchedEntryToZoneInfo = ddlog.GetTableID("MatchedEntryToZoneInfo")
 	meta := &TableMetaData{
-		TableID: relTableIDMatchedEntryToZoneInfo,
 		TableName: "MatchedEntryToZoneInfo", 
 		RecordName: "MatchedEntryToZoneInfo",
 		Unmarshaller: func(record ddlog.Record) (interface{}, error) {
@@ -24,24 +18,27 @@ func init() {
 			return obj, err
 		},
 	}
-	registerTableMetaData(relTableIDMatchedEntryToZoneInfo, meta)
+	registerTableMetaData(meta)
 }
 
-func NewInsertCommandMatchedEntryToZoneInfo(obj *MatchedEntryToZoneInfo) ddlog.Command {
+func (pd *ProgData) NewInsertCommandMatchedEntryToZoneInfo(obj *MatchedEntryToZoneInfo) ddlog.Command {
 	rec := NewRecordMatchedEntryToZoneInfo(obj)
-	return ddlog.NewInsertCommand(relTableIDMatchedEntryToZoneInfo, rec)
+	tableID := pd.LookupTableID("MatchedEntryToZoneInfo")
+	return ddlog.NewInsertCommand(tableID, rec)
 }
 
-func NewInsertOrUpdateCommandMatchedEntryToZoneInfo(obj *MatchedEntryToZoneInfo) ddlog.Command {
+func (pd *ProgData) NewInsertOrUpdateCommandMatchedEntryToZoneInfo(obj *MatchedEntryToZoneInfo) ddlog.Command {
 	rec := NewRecordMatchedEntryToZoneInfo(obj)
-	return ddlog.NewInsertOrUpdateCommand(relTableIDMatchedEntryToZoneInfo, rec)
+	tableID := pd.LookupTableID("MatchedEntryToZoneInfo")
+	return ddlog.NewInsertOrUpdateCommand(tableID, rec)
 }
 
-func NewDeleteValCommandMatchedEntryToZoneInfo(obj *MatchedEntryToZoneInfo) ddlog.Command {
+func (pd *ProgData) NewDeleteValCommandMatchedEntryToZoneInfo(obj *MatchedEntryToZoneInfo) ddlog.Command {
 	rec := NewRecordMatchedEntryToZoneInfo(obj)
-	return ddlog.NewDeleteValCommand(relTableIDMatchedEntryToZoneInfo, rec)
+	tableID := pd.LookupTableID("MatchedEntryToZoneInfo")
+	return ddlog.NewDeleteValCommand(tableID, rec)
 }
 
-func GetRelTableIDMatchedEntryToZoneInfo() ddlog.TableID {
-	return relTableIDMatchedEntryToZoneInfo
+func (pd *ProgData) GetRelTableIDMatchedEntryToZoneInfo() ddlog.TableID {
+	return pd.LookupTableID("MatchedEntryToZoneInfo")
 }

@@ -98,7 +98,7 @@ func (s *expState) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSPro
 		Status:          accountStatus,
 		Zones:           accountZones,
 	}
-	cmdAccountResult := generated.NewInsertOrUpdateCommandAccountResult(accountResult)
+	cmdAccountResult := s.progData.NewInsertOrUpdateCommandAccountResult(accountResult)
 
 	domains := &v1alpha1.DNSSelection{}
 	if spec.Domains != nil {
@@ -123,7 +123,7 @@ func (s *expState) UpdateProvider(logger logger.LogContext, obj *dnsutils.DNSPro
 			},
 		},
 	}
-	cmdProviderSpec := generated.NewInsertOrUpdateCommandDNSProviderSpec(gspec)
+	cmdProviderSpec := s.progData.NewInsertOrUpdateCommandDNSProviderSpec(gspec)
 
 	s.addToDDLogCommandQueue(cmdAccountResult, cmdProviderSpec)
 	list := s.nextProviderStatusesFromQueue(obj.ObjectName())
@@ -171,7 +171,7 @@ func (s *expState) deleteProvider(logger logger.LogContext, name resources.Objec
 		spec := &generated.DNSProviderSpec{
 			Key: generated.ObjectKey{Arg0: name.Namespace(), Arg1: name.Name()},
 		}
-		cmd := generated.NewDeleteKeyCommandDNSProviderSpec(spec)
+		cmd := s.progData.NewDeleteKeyCommandDNSProviderSpec(spec)
 		// TODO also remove AccountResult
 		s.addToDDLogCommandQueue(cmd)
 	}
