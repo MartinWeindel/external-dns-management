@@ -8,6 +8,11 @@ image:
   tag: v0.30.0-master
   pullPolicy: IfNotPresent
 
+image-2:
+  repository: europe-docker.pkg.dev/gardener-project/public/dns-controller-manager-2
+  tag: v0.30.0-master
+  pullPolicy: IfNotPresent
+
 env: []
 
 resources:

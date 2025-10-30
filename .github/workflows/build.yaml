@@ -35,6 +35,8 @@ jobs:
         args:
           - name: dns-controller-manager
             oci-repository: dns-controller-manager
+          - name: dns-controller-manager-2
+            oci-repository: dns-controller-manager-2
     with:
       name: ${{ matrix.args.name }}
       version: ${{ needs.prepare.outputs.version }}
