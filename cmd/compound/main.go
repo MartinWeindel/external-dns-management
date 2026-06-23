@@ -52,6 +52,7 @@ import (
 	_ "github.com/gardener/external-dns-management/pkg/controller/source/service"
 	dnsprovider "github.com/gardener/external-dns-management/pkg/dns/provider"
 	dnssource "github.com/gardener/external-dns-management/pkg/dns/source"
+	"github.com/gardener/external-dns-management/pkg/fips"
 	_ "github.com/gardener/external-dns-management/pkg/server/pprof"
 	"github.com/gardener/external-dns-management/pkg/server/remote"
 	"github.com/gardener/external-dns-management/pkg/server/remote/embed"
@@ -89,5 +90,6 @@ func main() {
 		fmt.Println(Version)
 		os.Exit(0)
 	}
+	fmt.Println(fips.Status())
 	controllermanager.Start("dns-controller-manager", "dns controller manager", "nothing")
 }

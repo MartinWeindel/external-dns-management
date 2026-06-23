@@ -47,6 +47,7 @@ import (
 	dnsmanclient "github.com/gardener/external-dns-management/pkg/dnsman2/client"
 	"github.com/gardener/external-dns-management/pkg/dnsman2/dns"
 	"github.com/gardener/external-dns-management/pkg/dnsman2/dns/metrics"
+	"github.com/gardener/external-dns-management/pkg/fips"
 )
 
 // Name is the name of the dns-controller-manager.
@@ -181,6 +182,8 @@ func (o *options) LogConfig() (logLevel, logFormat string) {
 // run does the actual work of the command.
 func (o *options) run(ctx context.Context, log logr.Logger) error {
 	cfg := o.config
+
+	log.Info(fips.Status(), "fipsEnabled", fips.Enabled())
 
 	if err := logConfiguration(log, cfg); err != nil {
 		return fmt.Errorf("error logging configuration: %w", err)

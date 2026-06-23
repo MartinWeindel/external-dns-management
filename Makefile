@@ -76,6 +76,26 @@ release:
 	    -ldflags "-w -X main.Version=$(VERSION)" \
 	    ./cmd/nextgen
 
+# release-fips builds the same static binaries as `release`, but freezes the
+# CMVP-certified Go FIPS 140-3 crypto module into them via GOFIPS140.
+# Runtime activation still requires GODEBUG=fips140=on (set in the container image).
+# GOFIPS140 values: "v1.0.0" (frozen Go 1.24 module, CMVP cert #5247),
+# "latest" (toolchain default), "inprocess"/"certified" (CMVP lifecycle aliases).
+GOFIPS140 ?= v1.0.0
+
+.PHONY: release-fips
+release-fips:
+	@GOFIPS140=$(GOFIPS140) CGO_ENABLED=0 go build -o $(EXECUTABLE) \
+	    -a \
+	    -ldflags "-w -X main.Version=$(VERSION)" \
+	    ./cmd/compound
+	@GOFIPS140=$(GOFIPS140) CGO_ENABLED=0 go build -o $(EXECUTABLE_NG) \
+	    -a \
+	    -ldflags "-w -X main.Version=$(VERSION)" \
+	    ./cmd/nextgen
+	@echo "Built FIPS binaries with GOFIPS140=$(GOFIPS140)"
+	@go version -m $(EXECUTABLE) | grep -E 'GOFIPS140|GOEXPERIMENT' || true
+
 .PHONY: unittests
 unittests: $(GINKGO)
 	hack/go-test.sh -race -timeout=3m ./pkg/...
