@@ -15,12 +15,16 @@ COPY . .
 RUN GOARCH=amd64 GOOS=linux make release-fips
 
 ############# base
-# gardenlinux-fips provides a FIPS 140-3 validated user-space (OpenSSL FIPS provider
-# enabled system-wide). The Go binary already enforces FIPS via its baked-in
-# GOFIPS140 module (DefaultGODEBUG=fips140=on); this base image satisfies any
-# external audit requirement for the surrounding container environment.
-FROM ghcr.io/gardenlinux/gardenlinux-fips:1877.19 AS base
-# nobody:nogroup (65534:65534) is present in all Debian-derived images including gardenlinux.
+# distroless/static is used intentionally over gardenlinux-fips:
+# The Go binary enforces FIPS 140-3 entirely through its baked-in GOFIPS140
+# module — it is a static binary that never calls into the system's OpenSSL or
+# any other native crypto library. gardenlinux-fips would add ~120-150 MB of
+# OS user-space (glibc, OpenSSL FIPS provider, apt, …) that the binary does not
+# use, increasing image size and attack surface with no functional benefit.
+# Use gardenlinux-fips as the base only if a compliance regime explicitly
+# requires the surrounding container OS to be on a FIPS-validated image (not
+# just the application binary).
+FROM gcr.io/distroless/static-debian13:nonroot AS base
 
 #############      dns-controller-manager     #############
 FROM base AS dns-controller-manager

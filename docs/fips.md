@@ -9,9 +9,9 @@ Two separate artifacts are produced:
 
 - **Binary** — built with `GOFIPS140=v1.0.0` so the CMVP-certified Go crypto
   module is frozen in at compile time and FIPS mode is on by default.
-- **Container image** — built on `ghcr.io/gardenlinux/gardenlinux-fips:1877.19`,
-  a Garden Linux variant with the OpenSSL FIPS provider enabled system-wide.
-  Tagged with a `-fips` suffix to distinguish it from the standard image.
+- **Container image** — built on `gcr.io/distroless/static-debian13:nonroot`,
+  the same minimal base as the standard image. Tagged with a `-fips` suffix to
+  distinguish it from the standard image.
 
 ## How to use it
 
@@ -62,11 +62,26 @@ if fips.Enabled() {
 }
 ```
 
+## Base image choice
+
+The FIPS image uses the same `gcr.io/distroless/static-debian13:nonroot` base
+as the standard image, not a FIPS-validated OS image such as
+`ghcr.io/gardenlinux/gardenlinux-fips`.
+
+The reasoning: the Go binary is **fully static** (`CGO_ENABLED=0`) and never
+calls into the system's OpenSSL or any native crypto library. All cryptographic
+operations go through the pure-Go FIPS 140-3 module that is baked into the
+binary at compile time via `GOFIPS140`. The surrounding container OS has no
+influence on which algorithms the binary uses.
+
+Switching to `gardenlinux-fips` would add roughly 120–150 MB of OS user-space
+(glibc, the OpenSSL FIPS provider, apt, coreutils, …) that the binary never
+touches — larger image, larger attack surface, no functional gain.
+
 ## Notes
 
 - `release-fips` keeps `CGO_ENABLED=0`, so the resulting binaries remain fully
-  static and work in `scratch` / `distroless` / `gardenlinux-fips` base images
-  without any libc or OpenSSL dependency.
+  static and do not require libc or OpenSSL in the container.
 - Because `GOFIPS140` sets `DefaultGODEBUG=fips140=on` in the binary, FIPS mode
   is on out of the box. Setting `GODEBUG=fips140=on` at runtime is redundant but
   harmless; `GODEBUG=fips140=only` switches the binary into the stricter
