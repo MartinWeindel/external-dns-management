@@ -5,21 +5,29 @@ native [FIPS 140-3 module](https://go.dev/doc/security/fips140). The module is
 frozen at build time via the `GOFIPS140` environment variable and is activated
 in the binary by default — no runtime configuration is required.
 
-This page documents only how to *build* a FIPS binary. The matching
-FIPS-validated container image is built on top of
-`ghcr.io/gardenlinux/gardenlinux-fips` and is described separately.
+Two separate artifacts are produced:
+
+- **Binary** — built with `GOFIPS140=v1.0.0` so the CMVP-certified Go crypto
+  module is frozen in at compile time and FIPS mode is on by default.
+- **Container image** — built on `ghcr.io/gardenlinux/gardenlinux-fips:1877.19`,
+  a Garden Linux variant with the OpenSSL FIPS provider enabled system-wide.
+  Tagged with a `-fips` suffix to distinguish it from the standard image.
 
 ## How to use it
 
 ```bash
 # Normal (non-FIPS) build — unchanged:
 make release
+make docker-images
 
-# FIPS build (frozen v1.0.0 CMVP-certified module, the default):
+# FIPS binary only (frozen v1.0.0 CMVP-certified module, the default):
 make release-fips
 
 # Pin a specific module version:
 make release-fips GOFIPS140=v1.26.0
+
+# FIPS container images (calls release-fips internally, tags with -fips suffix):
+make docker-images-fips
 ```
 
 Supported `GOFIPS140` values include any frozen module version (e.g. `v1.0.0`,

@@ -148,6 +148,11 @@ docker-images:
 	@docker build -t $(IMAGE_REPOSITORY):$(IMAGE_TAG) -f Dockerfile --target dns-controller-manager .
 	@docker build -t $(IMAGE_REPOSITORY_NG):$(IMAGE_TAG) -f Dockerfile --target dns-controller-manager-next-generation .
 
+.PHONY: docker-images-fips
+docker-images-fips:
+	@docker build -t $(IMAGE_REPOSITORY):$(IMAGE_TAG)-fips    -f Dockerfile.fips --target dns-controller-manager .
+	@docker build -t $(IMAGE_REPOSITORY_NG):$(IMAGE_TAG)-fips -f Dockerfile.fips --target dns-controller-manager-next-generation .
+
 .PHONY: sast
 sast: $(GOSEC)
 	@./hack/sast.sh --exclude-dirs hack,local
