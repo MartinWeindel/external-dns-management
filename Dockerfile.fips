@@ -20,10 +20,7 @@ RUN make release-fips
 # GOFIPS140 module (DefaultGODEBUG=fips140=on); this base image satisfies any
 # external audit requirement for the surrounding container environment.
 FROM ghcr.io/gardenlinux/gardenlinux-fips:1877.19 AS base
-
-# gardenlinux does not pre-create UID 65534 (unlike distroless:nonroot).
-RUN groupadd --system --gid 65534 nonroot \
- && useradd  --system --uid 65534 --gid 65534 --no-create-home --shell /usr/sbin/nologin nonroot
+# nobody:nogroup (65534:65534) is present in all Debian-derived images including gardenlinux.
 
 #############      dns-controller-manager     #############
 FROM base AS dns-controller-manager
@@ -31,7 +28,7 @@ WORKDIR /
 
 COPY --from=builder /build/dns-controller-manager /dns-controller-manager
 
-USER 65534:65534
+USER nobody
 
 ENTRYPOINT ["/dns-controller-manager"]
 
@@ -41,6 +38,6 @@ WORKDIR /
 
 COPY --from=builder /build/dns-controller-manager-next-generation /dns-controller-manager-next-generation
 
-USER 65534:65534
+USER nobody
 
 ENTRYPOINT ["/dns-controller-manager-next-generation"]
