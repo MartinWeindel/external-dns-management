@@ -12,7 +12,7 @@ RUN go mod download
 
 COPY . .
 
-RUN make release-fips
+RUN GOARCH=amd64 GOOS=linux make release-fips
 
 ############# base
 # gardenlinux-fips provides a FIPS 140-3 validated user-space (OpenSSL FIPS provider

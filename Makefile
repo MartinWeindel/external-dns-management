@@ -150,8 +150,8 @@ docker-images:
 
 .PHONY: docker-images-fips
 docker-images-fips:
-	@docker build -t $(IMAGE_REPOSITORY):$(IMAGE_TAG)-fips    -f Dockerfile.fips --target dns-controller-manager .
-	@docker build -t $(IMAGE_REPOSITORY_NG):$(IMAGE_TAG)-fips -f Dockerfile.fips --target dns-controller-manager-next-generation .
+	@docker build --platform linux/amd64 -t $(IMAGE_REPOSITORY):$(IMAGE_TAG)-fips    -f Dockerfile.fips --target dns-controller-manager .
+	@docker build --platform linux/amd64 -t $(IMAGE_REPOSITORY_NG):$(IMAGE_TAG)-fips -f Dockerfile.fips --target dns-controller-manager-next-generation .
 
 .PHONY: sast
 sast: $(GOSEC)
