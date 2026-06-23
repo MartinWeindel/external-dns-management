@@ -4,6 +4,7 @@ rules:
       - github.com/gardener/external-dns-management/cmd/nextgen
       - github.com/gardener/external-dns-management/pkg/apis
       - github.com/gardener/external-dns-management/pkg/dnsman2
+      - github.com/gardener/external-dns-management/pkg/fips
   - selectorRegexp: github[.]com/gardener/controller-manager-library
     forbiddenPrefixes:
       - ''
