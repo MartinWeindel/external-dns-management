@@ -18,7 +18,7 @@ RUN GOARCH=amd64 GOOS=linux make release-fips
 # distroless/static is used intentionally over gardenlinux-fips:
 # The Go binary enforces FIPS 140-3 entirely through its baked-in GOFIPS140
 # module — it is a static binary that never calls into the system's OpenSSL or
-# any other native crypto library. gardenlinux-fips would add ~120-150 MB of
+# any other native crypto library. gardenlinux-fips would add ~70 MB of
 # OS user-space (glibc, OpenSSL FIPS provider, apt, …) that the binary does not
 # use, increasing image size and attack surface with no functional benefit.
 # Use gardenlinux-fips as the base only if a compliance regime explicitly
